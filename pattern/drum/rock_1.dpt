@@ -1,0 +1,12 @@
+ticks_per_beat=2
+
+#keys;tick;duration;velocity
+
+35,46;0;1;mf
+44;1;1;mf
+38;2;1;mf
+44;3;1;mf
+35,46;4;1;mf
+44;5;1;mf
+38;6;1;mf
+44;7;1;mf
