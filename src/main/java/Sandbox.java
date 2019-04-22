@@ -13,11 +13,13 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import mcs.MSequencer;
 import mcs.melody.Chord;
 import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.midi.Drum;
 import mcs.midi.Message;
+import mcs.midi.MidiUtils;
 import mcs.midi.SequenceUtils;
 import mcs.pattern.DrumPattern;
 import mcs.pattern.MelodicPattern;
@@ -49,7 +51,46 @@ public class Sandbox {
 
 		//		playDrumPattern("rock_1", 80);
 
-		createSequenceWithPatterns();
+		//		createSequenceWithPatterns();
+
+		//		listDevices();
+		//
+		//		playDrums();
+
+		playLive();
+	}
+
+	public static void playLive() throws MidiUnavailableException {
+		Pattern pattern = new Pattern(new Time.TimeSignature(4, 4), 4);
+
+		pattern.add(Drum.CHANNEL, Note.C2, Note.Dynamic.FORTISSIMO.velocity, 1, 4);
+		pattern.add(Drum.CHANNEL, Note.C2 + 4, Note.Dynamic.FORTISSIMO.velocity, 2, 4);
+		pattern.add(Drum.CHANNEL, Note.C2 + 7, Note.Dynamic.FORTISSIMO.velocity, 3, 4);
+
+		MidiDevice device = MidiUtils.getMidiOutDevice();
+		if(device == null) {
+			device = MidiSystem.getSynthesizer();
+		}
+
+		try {
+			device.open();
+			Receiver receiver = device.getReceiver();
+
+			MSequencer sequencer = new MSequencer(receiver, 60);
+			sequencer.append(pattern);
+
+			sequencer.start();
+
+			Thread.sleep(pattern.getDuration_ms(sequencer.getTempo_bpm()));
+
+			sequencer.stop();
+
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			device.close();
+		}
+
 	}
 
 	static void createSequenceWithPatterns() throws InvalidMidiDataException, IOException, InterruptedException, MidiUnavailableException {
@@ -163,7 +204,7 @@ public class Sandbox {
 	}
 
 	static void playDrums() throws MidiUnavailableException, InvalidMidiDataException, InterruptedException {
-		MidiDevice device = getMidiOutDevice();
+		MidiDevice device = MidiUtils.getMidiOutDevice();
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();
 		}
@@ -182,37 +223,21 @@ public class Sandbox {
 			int duration_ms = 300;
 
 			for(int f = 10; f < 100; f += 5) {
-				sendNote(receiver, Drum.CHANNEL, Drum.ACOUSTIC_SNARE, f, 70);
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.ACOUSTIC_SNARE, f, 70);
 			}
 
 			for(int i = 0; i < 7; i++) {
-				sendNotes(receiver, Drum.CHANNEL, new int[] { Drum.BASS_DRUM_1, Drum.OPEN_HIT_HAT }, 100, duration_ms);
-				sendNote(receiver, Drum.CHANNEL, Drum.PEDAL_HIT_HAT, 100, duration_ms);
-				sendNote(receiver, Drum.CHANNEL, Drum.ACOUSTIC_SNARE, 100, duration_ms);
-				sendNote(receiver, Drum.CHANNEL, Drum.PEDAL_HIT_HAT, 100, duration_ms);
+				MSequencer.sendNotes(receiver, Drum.CHANNEL, new int[] { Drum.BASS_DRUM_1, Drum.OPEN_HIT_HAT }, 100, duration_ms);
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.PEDAL_HIT_HAT, 100, duration_ms);
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.ACOUSTIC_SNARE, 100, duration_ms);
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.PEDAL_HIT_HAT, 100, duration_ms);
 			}
 
-			sendNotes(receiver, Drum.CHANNEL, new int[] { Drum.BASS_DRUM_1, Drum.OPEN_HIT_HAT }, 100, duration_ms);
+			MSequencer.sendNotes(receiver, Drum.CHANNEL, new int[] { Drum.BASS_DRUM_1, Drum.OPEN_HIT_HAT }, 100, duration_ms);
 
 		} finally {
 			device.close();
 		}
-	}
-
-	/**
-	 * Returns the first Midi Out device available. If no device is available, then returns null.
-	 *
-	 * @return
-	 * @throws MidiUnavailableException
-	 */
-	static MidiDevice getMidiOutDevice() throws MidiUnavailableException {
-		for(MidiDevice.Info deviceInfo : MidiSystem.getMidiDeviceInfo()) {
-			MidiDevice device = MidiSystem.getMidiDevice(deviceInfo);
-			if("MidiOutDevice".equalsIgnoreCase(device.getClass().getSimpleName())) {
-				return device;
-			}
-		}
-		return null;
 	}
 
 	static void listDevices() throws MidiUnavailableException {
@@ -266,30 +291,6 @@ public class Sandbox {
 		}
 
 		synthesizer.close();
-	}
-
-	static void sendNote(Receiver receiver, int channel, int key, int velocity, long duration_ms)
-			throws InvalidMidiDataException, InterruptedException {
-		ShortMessage on = new ShortMessage();
-		on.setMessage(ShortMessage.NOTE_ON, channel, key, velocity);
-		ShortMessage off = new ShortMessage();
-		off.setMessage(ShortMessage.NOTE_OFF, channel, key, velocity);
-		receiver.send(on, -1);
-		Thread.sleep(duration_ms);
-		receiver.send(off, -1);
-	}
-
-	static void sendNotes(Receiver receiver, int channel, int[] keys, int velocity, long duration_ms)
-			throws InterruptedException, InvalidMidiDataException {
-		for(int key : keys) {
-			receiver.send(new ShortMessage(ShortMessage.NOTE_ON, channel, key, velocity), -1);
-		}
-
-		Thread.sleep(duration_ms);
-
-		for(int key : keys) {
-			receiver.send(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, velocity), -1);
-		}
 	}
 
 	static void log(String format, Object... args) {

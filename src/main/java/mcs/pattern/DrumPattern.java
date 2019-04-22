@@ -29,6 +29,7 @@ import java.io.IOException;
 public class DrumPattern {
 
 	public static long importPattern(File patternFile, Track track, long tickStart) throws IOException, InvalidMidiDataException {
+
 		long result = tickStart;
 		int channel = Drum.CHANNEL;
 

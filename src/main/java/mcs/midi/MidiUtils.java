@@ -13,28 +13,28 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import mcs.melody.Time;
-import mcs.midi.Message;
-import org.junit.Test;
+package mcs.midi;
 
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+public class MidiUtils {
 
-public class TimeTest {
-
-	@Test
-	public void computeTickDuration() {
-		assertEquals(1000, Time.computeTickDuration_ms(60, 1));
-		assertEquals(500, Time.computeTickDuration_ms(120, 1));
-		assertEquals(500, Time.computeTickDuration_ms(60, 2));
+	/**
+	 * Returns the first Midi Out device available. If no device is available, then returns null.
+	 *
+	 * @return
+	 * @throws MidiUnavailableException
+	 */
+	public static MidiDevice getMidiOutDevice() throws MidiUnavailableException {
+		for(MidiDevice.Info deviceInfo : MidiSystem.getMidiDeviceInfo()) {
+			MidiDevice device = MidiSystem.getMidiDevice(deviceInfo);
+			if("MidiOutDevice".equalsIgnoreCase(device.getClass().getSimpleName())) {
+				return device;
+			}
+		}
+		return null;
 	}
 
-	@Test
-	public void createTempoMessage() throws InvalidMidiDataException {
-		MetaMessage metaMessage = Time.createTempoMessage(120);
-		assertTrue(Message.toString(metaMessage).contains(" 120 BPM"));
-	}
 }

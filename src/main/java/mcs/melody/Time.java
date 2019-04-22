@@ -37,6 +37,39 @@ public class Time {
 
 	public enum Duration {WHOLE, HALF, QUARTER, EIGHTH, SIXTEENTH, THIRTY_SECOND, TRIPLET, TRIPLET_6}
 
+	public static class TimeSignature {
+
+		int m_beatsInBar;
+		int m_beatDivision;
+
+		public TimeSignature(int beatsInBar, int beatDivision) {
+			m_beatsInBar = beatsInBar;
+			m_beatDivision = beatDivision;
+		}
+
+		public int getBeatsInBar() {
+			return m_beatsInBar;
+		}
+
+		/**
+		 * Returns the number of ticks in one bar.
+		 *
+		 * @return
+		 */
+		public int getTicks(int ticksPerBeat) {
+			return ticksPerBeat * m_beatsInBar;
+		}
+	}
+
+	public static long computeTickDuration_ms(int tempo_bpm, int ticksPerBeat) {
+		long beatDuration_ms = 60_000 / tempo_bpm;
+		return beatDuration_ms / ticksPerBeat;
+	}
+
+	//
+	// MIDI messages
+	//
+
 	/**
 	 * @param mspq Micro-Seconds Per Quarter
 	 * @return
@@ -53,6 +86,16 @@ public class Time {
 		}
 		return new MetaMessage(Message.META_TYPE_TEMPO, data, data.length);
 	}
+
+	public static MetaMessage createTempoMessage(int bpm) throws InvalidMidiDataException {
+		byte[] bytes = BigInteger.valueOf(60_000_000 / bpm).toByteArray();
+		MetaMessage metaMessage = new MetaMessage(Message.META_TYPE_TEMPO, bytes, bytes.length);
+		return metaMessage;
+	}
+
+	//
+	// MIDI tracks
+	//
 
 	/**
 	 * Overrides TEMPO meta message(s) with given BPM.
@@ -74,12 +117,6 @@ public class Time {
 				}
 			}
 		}
-	}
-
-	public static MetaMessage createTempoMessage(int bpm) throws InvalidMidiDataException {
-		byte[] bytes = BigInteger.valueOf(60_000_000 / bpm).toByteArray();
-		MetaMessage metaMessage = new MetaMessage(Message.META_TYPE_TEMPO, bytes, bytes.length);
-		return metaMessage;
 	}
 
 }

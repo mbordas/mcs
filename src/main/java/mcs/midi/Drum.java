@@ -15,6 +15,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.midi;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class Drum {
 
 	public static final int CHANNEL = 9; // General Midi specs channels are 1 to 16 (in code 0-15), drums are on 10th (in code 9).
@@ -88,5 +91,16 @@ public class Drum {
 	public static final int OPEN_CUICA = 79;
 	public static final int MUTE_TRIANGLE = 80;
 	public static final int OPEN_TRIANGLE = 81;
+
+	public static Map<String, Integer> getBasicKeyMapping() {
+		Map<String, Integer> result = new LinkedHashMap<>();
+
+		result.put("Bass", BASS_DRUM_1);
+		result.put("Open HH", OPEN_HIT_HAT);
+		result.put("Pedal HH", PEDAL_HIT_HAT);
+		result.put("Snare", ACOUSTIC_SNARE);
+
+		return result;
+	}
 
 }
