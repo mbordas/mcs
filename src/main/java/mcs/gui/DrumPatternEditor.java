@@ -23,93 +23,97 @@ import java.awt.event.ActionListener;
 
 public class DrumPatternEditor {
 
-	JButton m_clearBtn, m_playBtn;
+    JButton m_clearBtn, m_playBtn, m_stopBtn;
 
-	DrumGrid m_drumGrid;
+    DrumGrid m_drumGrid;
 
-	ActionListener m_actionListener = new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			if(e.getSource() == m_clearBtn) {
-				m_drumGrid.clear();
-			} else if(e.getSource() == m_playBtn) {
-				play();
-			}
-		}
-	};
+    MSequencer m_sequencer;
 
-	public void show() {
-		// create main frame
-		JFrame frame = new JFrame("Drum Pattern Editor");
-		Container content = frame.getContentPane();
-		// set layout on content pane
-		content.setLayout(new BorderLayout());
-		// create draw area
-		m_drumGrid = new DrumGrid(new Time.TimeSignature(4, 4), 1, Drum.getBasicKeyMapping());
+    public DrumPatternEditor(MSequencer sequencer) {
+        m_sequencer = sequencer;
+    }
 
-		// add to content pane
-		content.add(m_drumGrid, BorderLayout.CENTER);
+    ActionListener m_actionListener = new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == m_clearBtn) {
+                m_drumGrid.clear();
+            } else if (e.getSource() == m_playBtn) {
+                play();
+            } else if (e.getSource() == m_stopBtn) {
+                stop();
+            }
+        }
+    };
 
-		// create controls to apply colors and call clear feature
-		JPanel controls = new JPanel();
+    public void show() {
+        // create main frame
+        JFrame frame = new JFrame("Drum Pattern Editor");
+        Container content = frame.getContentPane();
+        // set layout on content pane
+        content.setLayout(new BorderLayout());
+        // create draw area
+        m_drumGrid = new DrumGrid(new Time.TimeSignature(4, 4), 1, Drum.getBasicKeyMapping());
 
-		m_clearBtn = new JButton("Clear");
-		m_clearBtn.addActionListener(m_actionListener);
-		m_playBtn = new JButton("Play");
-		m_playBtn.addActionListener(m_actionListener);
+        // add to content pane
+        content.add(m_drumGrid, BorderLayout.CENTER);
 
-		// add to panel
-		controls.add(m_clearBtn);
-		controls.add(m_playBtn);
+        // create controls to apply colors and call clear feature
+        JPanel controls = new JPanel();
 
-		// add to content pane
-		content.add(controls, BorderLayout.NORTH);
+        m_clearBtn = new JButton("Clear");
+        m_clearBtn.addActionListener(m_actionListener);
+        m_playBtn = new JButton("Play");
+        m_playBtn.addActionListener(m_actionListener);
+        m_stopBtn = new JButton("Stop");
+        m_stopBtn.addActionListener(m_actionListener);
 
-		frame.pack();
-		// can close frame
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// show the swing paint result
-		frame.setVisible(true);
-	}
+        // add to panel
+        controls.add(m_clearBtn);
+        controls.add(m_playBtn);
+        controls.add(m_stopBtn);
 
-	void play() {
-		Pattern pattern = m_drumGrid.toPattern(Drum.CHANNEL);
+        // add to content pane
+        content.add(controls, BorderLayout.NORTH);
 
-		System.out.println("Pattern size: " + pattern.size());
+        frame.pack();
+        // can close frame
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // show the swing paint result
+        frame.setVisible(true);
+    }
 
-		MidiDevice device = null;
-		try {
-			device = MidiUtils.getMidiOutDevice();
-			if(device == null) {
-				device = MidiSystem.getSynthesizer();
-			}
+    void play() {
+        Pattern pattern = m_drumGrid.toPattern(Drum.CHANNEL);
+        System.out.println("Pattern size: " + pattern.size());
+        m_sequencer.set(pattern);
+        m_sequencer.enableLooping(true);
+        try {
+            m_sequencer.start();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
-			device.open();
-			Receiver receiver = device.getReceiver();
+    void stop() {
+        try {
+            m_sequencer.stop();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
-			MSequencer sequencer = new MSequencer(receiver, 60);
-			sequencer.append(pattern);
+    public static void main(String[] args) throws MidiUnavailableException {
+        MidiDevice device = MidiUtils.getMidiOutDevice();
 
-			sequencer.start();
+        if (device == null) {
+            device = MidiSystem.getSynthesizer();
+        }
 
-			long patternDuration_ms = pattern.getDuration_ms(sequencer.getTempo_bpm());
-			System.out.println("Pattern duration: " + patternDuration_ms + " ms");
+        device.open();
+        Receiver receiver = device.getReceiver();
 
-			Thread.sleep(patternDuration_ms);
+        MSequencer sequencer = new MSequencer(receiver, 60);
 
-			sequencer.stop();
-
-		} catch(InterruptedException e) {
-			e.printStackTrace();
-		} catch(MidiUnavailableException e) {
-			e.printStackTrace();
-		} finally {
-			if(device != null) {
-				device.close();
-			}
-		}
-	}
-
-	public static void main(String[] args) {
-		new DrumPatternEditor().show();
-	}
+        new DrumPatternEditor(sequencer).show();
+    }
 }

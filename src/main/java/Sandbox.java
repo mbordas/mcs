@@ -77,7 +77,7 @@ public class Sandbox {
 			Receiver receiver = device.getReceiver();
 
 			MSequencer sequencer = new MSequencer(receiver, 60);
-			sequencer.append(pattern);
+			sequencer.set(pattern);
 
 			sequencer.start();
 

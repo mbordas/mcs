@@ -35,11 +35,12 @@ public class Pattern {
 	final int m_ticksPerBeat;
 
 	private final Map<Long, List<ShortMessage>> m_tickEvents = new TreeMap<>();
-	private long m_size = 0L;
+	private final long m_size;
 
 	public Pattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
 		m_timeSignature = timeSignature;
 		m_ticksPerBeat = ticksPerBeat;
+		m_size = m_timeSignature.getTicks(ticksPerBeat);
 	}
 
 	public int getTicksPerBeat() {
@@ -53,8 +54,6 @@ public class Pattern {
 
 			List<ShortMessage> stopEvents = getOrCreateEventList(tickStop);
 			stopEvents.add(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, velocity));
-
-			m_size = Math.max(m_size, tickStop);
 		} catch(InvalidMidiDataException e) {
 			e.printStackTrace();
 		}

@@ -22,120 +22,178 @@ import mcs.pattern.Pattern;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MSequencer {
 
-	private final Receiver m_receiver;
-	private final int m_tempo_bpm;
-	private Pattern m_pattern;
+    private final Receiver m_receiver;
+    private final int m_tempo_bpm;
+    private Pattern m_pattern;
 
-	private final AtomicBoolean m_running = new AtomicBoolean(false);
-	private final Runnable m_loop;
-	private Thread m_thread;
+    private final AtomicBoolean m_running = new AtomicBoolean(false);
+    private final Runnable m_loop;
+    private Long m_restartAtTick;
+    private Thread m_thread;
 
-	private final Semaphore m_stopped = new Semaphore(0);
-	private final Semaphore m_started = new Semaphore(0);
+    private final Semaphore m_stopped = new Semaphore(0);
+    private final Semaphore m_started = new Semaphore(0);
 
-	public MSequencer(Receiver receiver, int tempo_bpm) {
-		m_receiver = receiver;
-		m_tempo_bpm = tempo_bpm;
+    public MSequencer(Receiver receiver, int tempo_bpm) {
+        m_receiver = receiver;
+        m_tempo_bpm = tempo_bpm;
+        m_restartAtTick = 0L;
+        m_loop = buildLoop();
+    }
 
-		m_loop = buildLoop();
-	}
+    public int getTempo_bpm() {
+        return m_tempo_bpm;
+    }
 
-	public int getTempo_bpm() {
-		return m_tempo_bpm;
-	}
+    //
+    // Playback management
+    //
 
-	public void start() throws InterruptedException {
-		if(!m_running.get()) {
-			m_running.set(true);
+    public void enableLooping(boolean enable) {
+        if (enable) {
+            m_restartAtTick = m_pattern.size();
+        } else {
+            m_restartAtTick = null;
+        }
+    }
 
-			m_thread = new Thread(m_loop);
-			m_thread.start();
+    public void start() throws InterruptedException {
+        if (!m_running.get()) {
+            m_running.set(true);
 
-			m_started.acquire(1);
-		}
-	}
+            m_thread = new Thread(m_loop);
+            m_thread.start();
 
-	public void stop() throws InterruptedException {
-		m_running.set(false);
-		m_stopped.acquire(1);
-	}
+            m_started.acquire(1);
+        }
+    }
 
-	public void append(Pattern pattern) {
-		m_pattern = pattern;
-	}
+    public void stop() throws InterruptedException {
+        m_running.set(false);
+        m_stopped.acquire(1);
+    }
 
-	private Runnable buildLoop() {
-		return new Runnable() {
-			@Override
-			public void run() {
-				long tick = 0;
-				long tickDuration_ms = Time.computeTickDuration_ms(m_tempo_bpm, m_pattern.getTicksPerBeat());
+    //
+    // Pattern management
+    //
 
-				System.out.println("Tick duration: " + tickDuration_ms + " ms");
+    public void set(Pattern pattern) {
+        m_pattern = pattern;
+    }
 
-				while(m_running.get()) {
+    //
+    // Internal
+    //
 
-					m_started.release(1);
+    /**
+     * Creates the main loop of the Sequencer.
+     * @return
+     */
+    private Runnable buildLoop() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                long tick = 0;
+                long tickDuration_ms = Time.computeTickDuration_ms(m_tempo_bpm, m_pattern.getTicksPerBeat());
 
-					System.out.print("t" + tick);
-					if(m_pattern == null) {
-						break;
-					} else if(tick > m_pattern.size()) {
-						break;
-					}
+                System.out.println("Tick duration: " + tickDuration_ms + " ms");
 
-					if(m_pattern.hasEvents(tick)) {
-						System.out.println();
-						for(ShortMessage event : m_pattern.getEventList(tick)) {
-							System.out.println(" " + Message.toString(event));
-							m_receiver.send(event, -1);
-						}
-					} else {
-						System.out.println(" -");
-					}
+                long lastTick_ms = System.currentTimeMillis();
 
-					try {
-						Thread.sleep(tickDuration_ms);
-					} catch(InterruptedException e) {
-						e.printStackTrace();
-						break;
-					}
+                while (m_running.get()) {
 
-					tick++;
-				}
+                    m_started.release(1); // Semaphore is used to manage asynchronous start/stop of loop
 
-				m_stopped.release(1);
-			}
-		};
-	}
+                    // If pattern not set or played to the end, escaping the loop
+                    System.out.print("t" + tick);
+                    if (m_pattern == null) {
+                        break;
+                    } else if (tick > m_pattern.size()) {
+                        break;
+                    }
 
-	public static void sendNote(Receiver receiver, int channel, int key, int velocity, long duration_ms)
-			throws InvalidMidiDataException, InterruptedException {
-		ShortMessage on = new ShortMessage();
-		on.setMessage(ShortMessage.NOTE_ON, channel, key, velocity);
-		ShortMessage off = new ShortMessage();
-		off.setMessage(ShortMessage.NOTE_OFF, channel, key, velocity);
-		receiver.send(on, -1);
-		Thread.sleep(duration_ms);
-		receiver.send(off, -1);
-	}
+                    // Computing MIDI messages to be played simultaneously
+                    List<ShortMessage> events = null;
 
-	public static void sendNotes(Receiver receiver, int channel, int[] keys, int velocity, long duration_ms)
-			throws InterruptedException, InvalidMidiDataException {
-		for(int key : keys) {
-			receiver.send(new ShortMessage(ShortMessage.NOTE_ON, channel, key, velocity), -1);
-		}
+                    if (m_pattern.hasEvents(tick)) {
+                        System.out.println();
+                        events = m_pattern.getEventList(tick);
+                        for (ShortMessage event : events) { // Just for logging
+                            System.out.println(" " + Message.toString(event));
+                        }
+                    } else {
+                        System.out.println(" -");
+                    }
 
-		Thread.sleep(duration_ms);
+                    // Before playing the notes, we computes how long it took to build the MIDI messages
+                    // And this elapsed time will shorten the duration of sleep
+                    try {
+                        long elapsedTime_ms = System.currentTimeMillis() - lastTick_ms;
+                        Thread.sleep(tickDuration_ms - elapsedTime_ms);
 
-		for(int key : keys) {
-			receiver.send(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, velocity), -1);
-		}
-	}
+                        if (m_running.get() && events != null) {
+                            for (ShortMessage event : events) {
+                                m_receiver.send(event, -1);
+                            }
+                        }
+                        lastTick_ms = System.currentTimeMillis();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+
+                    tick++;
+
+                    // If looping is enabled, then the 'tick' counter is reset
+                    if (m_restartAtTick != null && tick >= m_restartAtTick) {
+                        tick = 0;
+                    }
+                }
+
+                m_stopped.release(1);
+            }
+        };
+    }
+
+    /**
+     * Sends MIDI message to the receiver. In other words it really plays the note.
+     * @param receiver
+     * @param channel
+     * @param key
+     * @param velocity
+     * @param duration_ms
+     * @throws InvalidMidiDataException
+     * @throws InterruptedException
+     */
+    public static void sendNote(Receiver receiver, int channel, int key, int velocity, long duration_ms)
+            throws InvalidMidiDataException, InterruptedException {
+        ShortMessage on = new ShortMessage();
+        on.setMessage(ShortMessage.NOTE_ON, channel, key, velocity);
+        ShortMessage off = new ShortMessage();
+        off.setMessage(ShortMessage.NOTE_OFF, channel, key, velocity);
+        receiver.send(on, -1);
+        Thread.sleep(duration_ms);
+        receiver.send(off, -1);
+    }
+
+    public static void sendNotes(Receiver receiver, int channel, int[] keys, int velocity, long duration_ms)
+            throws InterruptedException, InvalidMidiDataException {
+        for (int key : keys) {
+            receiver.send(new ShortMessage(ShortMessage.NOTE_ON, channel, key, velocity), -1);
+        }
+
+        Thread.sleep(duration_ms);
+
+        for (int key : keys) {
+            receiver.send(new ShortMessage(ShortMessage.NOTE_OFF, channel, key, velocity), -1);
+        }
+    }
 
 }
