@@ -76,8 +76,10 @@ public class MSequencer {
     }
 
     public void stop() throws InterruptedException {
-        m_running.set(false);
-        m_stopped.acquire(1);
+        if (m_running.get()) {
+            m_running.set(false);
+            m_stopped.acquire(1);
+        }
     }
 
     //
@@ -94,6 +96,7 @@ public class MSequencer {
 
     /**
      * Creates the main loop of the Sequencer.
+     *
      * @return
      */
     private Runnable buildLoop() {
@@ -164,6 +167,7 @@ public class MSequencer {
 
     /**
      * Sends MIDI message to the receiver. In other words it really plays the note.
+     *
      * @param receiver
      * @param channel
      * @param key

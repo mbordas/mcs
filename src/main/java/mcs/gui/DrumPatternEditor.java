@@ -7,6 +7,7 @@
 package mcs.gui;
 
 import mcs.MSequencer;
+import mcs.gui.components.MButton;
 import mcs.melody.Time;
 import mcs.midi.Drum;
 import mcs.midi.MidiUtils;
@@ -45,7 +46,9 @@ public class DrumPatternEditor {
         }
     };
 
-    public void show() {
+    public void show() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
+        UIUtils.setDefaultSize(24);
+
         // create main frame
         JFrame frame = new JFrame("Drum Pattern Editor");
         Container content = frame.getContentPane();
@@ -60,11 +63,11 @@ public class DrumPatternEditor {
         // create controls to apply colors and call clear feature
         JPanel controls = new JPanel();
 
-        m_clearBtn = new JButton("Clear");
+        m_clearBtn = new MButton("Clear");
         m_clearBtn.addActionListener(m_actionListener);
-        m_playBtn = new JButton("Play");
+        m_playBtn = new MButton("Play");
         m_playBtn.addActionListener(m_actionListener);
-        m_stopBtn = new JButton("Stop");
+        m_stopBtn = new MButton("Stop");
         m_stopBtn.addActionListener(m_actionListener);
 
         // add to panel
@@ -102,7 +105,7 @@ public class DrumPatternEditor {
         }
     }
 
-    public static void main(String[] args) throws MidiUnavailableException {
+    public static void main(String[] args) throws MidiUnavailableException, ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         MidiDevice device = MidiUtils.getMidiOutDevice();
 
         if (device == null) {

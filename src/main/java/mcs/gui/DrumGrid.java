@@ -28,10 +28,10 @@ import java.util.Map;
 
 public class DrumGrid extends JComponent {
 
-	public static final int CELL_WIDTH_px = 20;
-	public static final int CELL_HEIGHT_px = 20;
-	public static final int MARGIN_px = 10;
-	public static final int CELL_PADDING_px = 1;
+	public static final int CELL_WIDTH_px = 200;
+	public static final int CELL_HEIGHT_px = 200;
+	public static final int MARGIN_px = 100;
+	public static final int CELL_PADDING_px = 10;
 
 	static Color m_backgroundColor = Color.darkGray;
 	static Color m_emptyCellColor = Color.lightGray;
