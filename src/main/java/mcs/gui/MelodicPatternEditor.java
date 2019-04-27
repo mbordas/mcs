@@ -7,13 +7,15 @@
 package mcs.gui;
 
 import mcs.MSequencer;
-import mcs.gui.components.DrumGrid;
+import mcs.devices.Roland_FP30;
 import mcs.gui.components.MButton;
 import mcs.gui.components.MGrid;
+import mcs.gui.components.MelodicGrid;
+import mcs.melody.Chord;
 import mcs.melody.Note;
 import mcs.melody.Time;
-import mcs.midi.Drum;
 import mcs.midi.MidiUtils;
+import mcs.midi.Tone;
 import mcs.pattern.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -26,32 +28,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class DrumPatternEditor {
+public class MelodicPatternEditor {
+
+	public static final int CHANNEL = 0;
 
 	JButton m_clearBtn, m_playBtn, m_stopBtn;
 
-	DrumGrid m_grid;
+	MelodicGrid m_grid;
 
 	MSequencer m_sequencer;
 
-	public DrumPatternEditor(MSequencer sequencer) {
-		m_sequencer = sequencer;
-
-		m_grid = new DrumGrid(new Time.TimeSignature(4, 4), 1, Drum.getBasicKeyMapping());
-
-		m_grid.setRowClickListener(new MGrid.RowClickListener() {
-			@Override
-			public void onClick(int key) {
-				try {
-					m_sequencer.playNote(Drum.CHANNEL, key, Note.Dynamic.MEZZO_FORTE.velocity, 200);
-				} catch(InvalidMidiDataException e) {
-					e.printStackTrace();
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	final int[] m_chord;
 
 	ActionListener m_actionListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -65,9 +52,33 @@ public class DrumPatternEditor {
 		}
 	};
 
+	public MelodicPatternEditor(MSequencer sequencer, int[] chord) {
+		m_sequencer = sequencer;
+		m_chord = chord;
+
+		m_grid = new MelodicGrid(new Time.TimeSignature(4, 4), 1);
+
+		m_grid.setRowClickListener(new MGrid.RowClickListener() {
+			@Override
+			public void onClick(int key) { // key is in [1-7]
+				int note = m_chord[key - 1];
+				if(note == Note.NULL) {
+					return;
+				}
+				try {
+					m_sequencer.playNote(CHANNEL, note, Note.Dynamic.MEZZO_FORTE.velocity, 1000);
+				} catch(InvalidMidiDataException e) {
+					e.printStackTrace();
+				} catch(InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
 	public void show() {
 		// create main frame
-		JFrame frame = new JFrame("Drum Pattern Editor");
+		JFrame frame = new JFrame("Melodic Pattern Editor");
 		Container content = frame.getContentPane();
 		// set layout on content pane
 		content.setLayout(new BorderLayout());
@@ -101,7 +112,7 @@ public class DrumPatternEditor {
 	}
 
 	void play() {
-		Pattern pattern = m_grid.toPattern(Drum.CHANNEL);
+		Pattern pattern = m_grid.toPattern(CHANNEL, m_chord);
 		System.out.println("Pattern size: " + pattern.size());
 		m_sequencer.set(pattern);
 		m_sequencer.enableLooping(true);
@@ -120,7 +131,7 @@ public class DrumPatternEditor {
 		}
 	}
 
-	public static void main(String[] args) throws MidiUnavailableException {
+	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException {
 		MidiDevice device = MidiUtils.getMidiOutDevice();
 
 		if(device == null) {
@@ -130,8 +141,10 @@ public class DrumPatternEditor {
 		device.open();
 		Receiver receiver = device.getReceiver();
 
-		MSequencer sequencer = new MSequencer(receiver, 60);
+		Tone.selectInstrument(receiver, CHANNEL, Roland_FP30.GRAND_PIANO_1);
 
-		new DrumPatternEditor(sequencer).show();
+		MSequencer sequencer = new MSequencer(receiver, 100);
+
+		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3)).show();
 	}
 }

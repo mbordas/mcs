@@ -13,45 +13,36 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.midi;
+package mcs.gui.components;
 
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiEvent;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Track;
+import mcs.melody.Time;
+import mcs.pattern.Pattern;
 
-public class Tone {
+import java.util.Map;
 
-	String m_name;
-	int m_msb;
-	int m_lsb;
-	int m_pc;
+public class DrumGrid extends MGrid {
 
-	public Tone(String name, int msb, int lsb, int pc) {
-		m_name = name;
-		m_msb = msb;
-		m_lsb = lsb;
-		m_pc = pc;
+	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
+		super(timeSignature, bars, keyMapping);
 	}
 
-	public static void selectInstrument(Track track, int channel, Tone tone) throws InvalidMidiDataException {
-		for(ShortMessage message : buildChangeInstrumentMessages(channel, tone.m_msb, tone.m_lsb, tone.m_pc)) {
-			track.add(new MidiEvent(message, -1));
+	public Pattern toPattern(int channel) {
+		Pattern result = new Pattern(m_timeSignature, m_ticksPerBeat);
+
+		int row = 0;
+		for(int key : m_keyMapping.values()) {
+			for(int tick = 0; tick < getMatrixWidth(); tick++) {
+				int velocity = m_velocityMatrix[tick][row];
+
+				if(velocity > 0) {
+					result.add(channel, key, velocity, tick, tick + 1);
+				}
+			}
+
+			row++;
 		}
+
+		return result;
 	}
 
-	public static void selectInstrument(Receiver receiver, int channel, Tone tone) throws InvalidMidiDataException {
-		for(ShortMessage message : buildChangeInstrumentMessages(channel, tone.m_msb, tone.m_lsb, tone.m_pc)) {
-			receiver.send(message, -1);
-		}
-	}
-
-	public static ShortMessage[] buildChangeInstrumentMessages(int channel, int msb, int lsb, int pc) throws InvalidMidiDataException {
-		ShortMessage[] messages = new ShortMessage[3];
-		messages[0] = new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, 0, msb);
-		messages[1] = new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, 32, lsb);
-		messages[2] = new ShortMessage(ShortMessage.PROGRAM_CHANGE, channel, pc, 0);
-		return messages;
-	}
 }

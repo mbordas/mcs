@@ -35,12 +35,10 @@ public class Pattern {
 	final int m_ticksPerBeat;
 
 	private final Map<Long, List<ShortMessage>> m_tickEvents = new TreeMap<>();
-	private final long m_size;
 
 	public Pattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
 		m_timeSignature = timeSignature;
 		m_ticksPerBeat = ticksPerBeat;
-		m_size = m_timeSignature.getTicks(ticksPerBeat);
 	}
 
 	public int getTicksPerBeat() {
@@ -68,7 +66,7 @@ public class Pattern {
 	}
 
 	public long size() {
-		return m_size;
+		return m_timeSignature.getTicks(m_ticksPerBeat);
 	}
 
 	public long getDuration_ms(int tempo_bpm) {
