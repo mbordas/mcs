@@ -41,7 +41,7 @@ public class FileUtils {
 		return lines;
 	}
 
-	static void log(String format, Object... args) {
+	public static void log(String format, Object... args) {
 		String message = String.format(format, args);
 		System.out.println(message);
 	}

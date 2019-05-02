@@ -66,6 +66,18 @@ public class Time {
 		return beatDuration_ms / ticksPerBeat;
 	}
 
+	/**
+	 * Compute the delay in ms before this tick should occurs.
+	 *
+	 * @param tick
+	 * @param tempo_bmp
+	 * @param ticksPerBeat
+	 * @return
+	 */
+	public static long computeTickTime_ms(long tick, int tempo_bmp, int ticksPerBeat) {
+		return (tick * 60_000 / tempo_bmp) / ticksPerBeat;
+	}
+
 	//
 	// MIDI messages
 	//
