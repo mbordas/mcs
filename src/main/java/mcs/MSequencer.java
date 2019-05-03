@@ -81,8 +81,12 @@ public class MSequencer {
 		}
 	}
 
-	public void playNote(int channel, int key, int velocity, long duration_ms) throws InvalidMidiDataException, InterruptedException {
-		sendNote(m_receiver, channel, key, velocity, duration_ms);
+	public void pressNote(int channel, int key, int velocity) throws InvalidMidiDataException {
+		sendNoteON(m_receiver, channel, key, velocity);
+	}
+
+	public void releaseNote(int channel, int key) throws InvalidMidiDataException {
+		sendNoteOFF(m_receiver, channel, key);
 	}
 
 	//
@@ -166,6 +170,18 @@ public class MSequencer {
 				m_stopped.release(1);
 			}
 		};
+	}
+
+	public static void sendNoteON(Receiver receiver, int channel, int key, int velocity) throws InvalidMidiDataException {
+		ShortMessage on = new ShortMessage();
+		on.setMessage(ShortMessage.NOTE_ON, channel, key, velocity);
+		receiver.send(on, -1);
+	}
+
+	public static void sendNoteOFF(Receiver receiver, int channel, int key) throws InvalidMidiDataException {
+		ShortMessage on = new ShortMessage();
+		on.setMessage(ShortMessage.NOTE_OFF, channel, key, 0);
+		receiver.send(on, -1);
 	}
 
 	/**

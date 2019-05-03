@@ -41,12 +41,19 @@ public class DrumPatternEditor {
 
 		m_grid.setRowClickListener(new MGrid.RowClickListener() {
 			@Override
-			public void onClick(int key) {
+			public void onPress(int key) {
 				try {
-					m_sequencer.playNote(Drum.CHANNEL, key, Note.Dynamic.MEZZO_FORTE.velocity, 200);
+					m_sequencer.pressNote(Drum.CHANNEL, key, Note.Dynamic.MEZZO_FORTE.velocity);
 				} catch(InvalidMidiDataException e) {
 					e.printStackTrace();
-				} catch(InterruptedException e) {
+				}
+			}
+
+			@Override
+			public void onRelease(int key) {
+				try {
+					m_sequencer.releaseNote(Drum.CHANNEL, key);
+				} catch(InvalidMidiDataException e) {
 					e.printStackTrace();
 				}
 			}

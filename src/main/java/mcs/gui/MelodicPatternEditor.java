@@ -60,16 +60,29 @@ public class MelodicPatternEditor {
 
 		m_grid.setRowClickListener(new MGrid.RowClickListener() {
 			@Override
-			public void onClick(int key) { // key is in [1-7]
+			public void onPress(int key) {
 				int note = m_chord[key - 1];
 				if(note == Note.NULL) {
 					return;
 				}
+
 				try {
-					m_sequencer.playNote(CHANNEL, note, Note.Dynamic.MEZZO_FORTE.velocity, 1000);
+					m_sequencer.pressNote(CHANNEL, note, Note.Dynamic.MEZZO_FORTE.velocity);
 				} catch(InvalidMidiDataException e) {
 					e.printStackTrace();
-				} catch(InterruptedException e) {
+				}
+			}
+
+			@Override
+			public void onRelease(int key) {
+				int note = m_chord[key - 1];
+				if(note == Note.NULL) {
+					return;
+				}
+
+				try {
+					m_sequencer.releaseNote(CHANNEL, note);
+				} catch(InvalidMidiDataException e) {
 					e.printStackTrace();
 				}
 			}

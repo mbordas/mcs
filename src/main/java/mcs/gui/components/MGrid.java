@@ -49,7 +49,10 @@ public class MGrid extends JComponent {
 	RowClickListener m_rowClickListener;
 
 	public interface RowClickListener {
-		void onClick(int key);
+
+		void onPress(int key);
+
+		void onRelease(int key);
 	}
 
 	/**
@@ -82,18 +85,45 @@ public class MGrid extends JComponent {
 
 			@Override
 			public void mousePressed(MouseEvent event) {
-				if(event.getButton() == 1) {
+				if(event.getButton() == MouseEvent.BUTTON1) {
 					m_mode = EditionMode.WRITE;
-				} else if(event.getButton() == 3) {
+				} else if(event.getButton() == MouseEvent.BUTTON3) {
 					m_mode = EditionMode.ERASE;
 				}
 
-				onMouseAction(event);
+				if(!onMouseAction(event)) {
+
+					int column = pixel2column(event.getX());
+					int row = pixel2row(event.getY());
+
+					if(column < 0 && m_rowClickListener != null) {
+						int i = 0;
+						for(Integer key : m_keyMapping.values()) {
+							if(i == row) {
+								m_rowClickListener.onPress(key);
+							}
+							i++;
+						}
+					}
+				}
 			}
 
 			@Override
-			public void mouseReleased(MouseEvent mouseEvent) {
+			public void mouseReleased(MouseEvent event) {
 				m_mode = EditionMode.MOVE;
+
+				int column = pixel2column(event.getX());
+				int row = pixel2row(event.getY());
+
+				if(column < 0 && m_rowClickListener != null) {
+					int i = 0;
+					for(Integer key : m_keyMapping.values()) {
+						if(i == row) {
+							m_rowClickListener.onRelease(key);
+						}
+						i++;
+					}
+				}
 			}
 
 			@Override
@@ -147,14 +177,18 @@ public class MGrid extends JComponent {
 		m_velocityMatrix[column][row] = 0;
 	}
 
-	void onMouseAction(MouseEvent event) {
+	/**
+	 * @param event
+	 * @return If event has been consummed
+	 */
+	boolean onMouseAction(MouseEvent event) {
 		int column = pixel2column(event.getX());
 		int row = pixel2row(event.getY());
 
 		if(isInGrid(column, row)) {
 			if(m_graphics2D != null) {
 				if(m_mode == EditionMode.MOVE) {
-					return;
+					return true;
 				}
 
 				if(m_mode == EditionMode.WRITE) {
@@ -171,14 +205,10 @@ public class MGrid extends JComponent {
 
 				repaint();
 			}
-		} else if(column < 0 && m_rowClickListener != null) {
-			int i = 0;
-			for(Integer key : m_keyMapping.values()) {
-				if(i == row) {
-					m_rowClickListener.onClick(key);
-				}
-				i++;
-			}
+
+			return true;
+		} else {
+			return false;
 		}
 	}
 
