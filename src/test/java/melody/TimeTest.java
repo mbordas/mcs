@@ -13,36 +13,30 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui.components;
+package melody;
 
-import mcs.melody.Block;
 import mcs.melody.Time;
+import mcs.midi.Message;
+import org.junit.Test;
 
-import java.util.Map;
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
 
-public class DrumGrid extends MGrid {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
+public class TimeTest {
+
+	@Test
+	public void computeTickDuration() {
+		assertEquals(1000, Time.computeTickDuration_ms(60, 1));
+		assertEquals(500, Time.computeTickDuration_ms(120, 1));
+		assertEquals(500, Time.computeTickDuration_ms(60, 2));
 	}
 
-	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
-
-		int row = 0;
-		for(int key : m_keyMapping.values()) {
-			for(int tick = 0; tick < getMatrixWidth(); tick++) {
-				int velocity = m_velocityMatrix[tick][row];
-
-				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
-				}
-			}
-
-			row++;
-		}
-
-		return result;
+	@Test
+	public void createTempoMessage() throws InvalidMidiDataException {
+		MetaMessage metaMessage = Time.createTempoMessage(120);
+		assertTrue(Message.toString(metaMessage).contains(" 120 BPM"));
 	}
-
 }

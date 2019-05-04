@@ -13,36 +13,20 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui.components;
+package mcs.utils;
 
-import mcs.melody.Block;
-import mcs.melody.Time;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import java.util.Map;
+public class StringUtils {
 
-public class DrumGrid extends MGrid {
-
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
-	}
-
-	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
-
-		int row = 0;
-		for(int key : m_keyMapping.values()) {
-			for(int tick = 0; tick < getMatrixWidth(); tick++) {
-				int velocity = m_velocityMatrix[tick][row];
-
-				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
-				}
-			}
-
-			row++;
+	public static String getGroup(String input, String regex, int groupIndex) {
+		String result = null;
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(input);
+		if(matcher.find()) {
+			result = matcher.group(groupIndex);
 		}
-
 		return result;
 	}
-
 }

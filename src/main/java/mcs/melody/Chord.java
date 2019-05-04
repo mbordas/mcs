@@ -15,7 +15,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.melody;
 
+import mcs.utils.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class Chord {
+
+	public static final String NAME_REGEX = "([ABCDEFG][b#]?)(.*)";
 
 	// Intervals 'size' in semi-tones
 
@@ -49,6 +56,39 @@ public class Chord {
 
 	public static int[] Km(int key) {
 		return withIntervals(key, MINOR_THIRD, PERFECT_FIFTH);
+	}
+
+	public static int[] byName(String name, int octave) {
+		String keyName = StringUtils.getGroup(name, NAME_REGEX, 1);
+		String flavorName = StringUtils.getGroup(name, NAME_REGEX, 2);
+
+		Map<String, Integer> noteOffsets = new HashMap<>();
+		noteOffsets.put("C", 0);
+		noteOffsets.put("C#", 1);
+		noteOffsets.put("Db", 1);
+		noteOffsets.put("D", 2);
+		noteOffsets.put("D#", 3);
+		noteOffsets.put("Eb", 3);
+		noteOffsets.put("E", 4);
+		noteOffsets.put("F", 5);
+		noteOffsets.put("F#", 6);
+		noteOffsets.put("Gb", 6);
+		noteOffsets.put("G", 7);
+		noteOffsets.put("G#", 8);
+		noteOffsets.put("Ab", 8);
+		noteOffsets.put("A", 9);
+		noteOffsets.put("A#", 10);
+		noteOffsets.put("Bb", 10);
+		noteOffsets.put("B", 11);
+
+		int key = Note.C0 + noteOffsets.get(keyName) + octave * 12;
+		if("".equals(flavorName)) {
+			return K(key);
+		} else if("7".equals(flavorName)) {
+			return K7(key);
+		} else {
+			return null;
+		}
 	}
 
 	//

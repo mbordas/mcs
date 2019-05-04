@@ -13,29 +13,44 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.pattern;
+package mcs.melody;
 
-import mcs.melody.Note;
-import mcs.melody.Time;
+import mcs.pattern.Event;
+import mcs.pattern.Pattern;
 
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.ShortMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public abstract class Pattern {
+/**
+ * A {@link Block} is a piece of partition. It contains {@link Event}s. It can be constructed from {@link Pattern}.
+ */
+public class Block {
 
-	public static final int DEFAULT_PATTERN_TICKS_PER_BEAT = 96;
-
-	public static final String OPTION_TICKS_PER_BEAT = "ticks_per_beat";
+	public static final int DEFAULT_NOTE_OFF_VELOCITY = 0;
 
 	private final Time.TimeSignature m_timeSignature;
 	private final int m_ticksPerBeat;
 	protected final Map<Long, List<Event>> m_tickEvents = new TreeMap<>();
 
-	protected Pattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
+	public Block(Time.TimeSignature timeSignature, int ticksPerBeat) {
 		m_timeSignature = timeSignature;
 		m_ticksPerBeat = ticksPerBeat;
+	}
+
+	public long size() {
+		return m_timeSignature.getTicks(m_ticksPerBeat);
+	}
+
+	public long getDuration_ms(int tempo_bpm) {
+		return (size() + 1) * Time.computeTickDuration_ms(tempo_bpm, m_ticksPerBeat);
+	}
+
+	public int getTicksPerBeat() {
+		return m_ticksPerBeat;
 	}
 
 	public void add(int channel, int key, int velocity, long tickStart, long tickStop) {
@@ -43,8 +58,45 @@ public abstract class Pattern {
 		tickEvents.add(new Event(tickStart, channel, new int[] { key }, velocity, tickStop - tickStart));
 	}
 
-	public long size() {
-		return m_timeSignature.getTicks(m_ticksPerBeat);
+	/**
+	 * Computes MIDI {@link ShortMessage}s.
+	 *
+	 * @param tick
+	 * @return
+	 * @throws InvalidMidiDataException
+	 */
+	public List<ShortMessage> toMessages(long tick) throws InvalidMidiDataException {
+		List<ShortMessage> result = new ArrayList<>();
+
+		// Reading any event that starts before or at 'tick'
+		for(Map.Entry<Long, List<Event>> entry : m_tickEvents.entrySet()) {
+			long _tick = entry.getKey();
+			if(_tick > tick) {
+				break;
+			}
+
+			if(_tick < tick) { // Looking in past events if some ends now at 'tick'
+				long distance = tick - _tick;
+				for(Event event : entry.getValue()) {
+					if(event.getDuration_ticks() == distance) {
+						for(int key : event.getKeys()) {
+							if(key != Note.NULL) {
+								result.add(new ShortMessage(ShortMessage.NOTE_OFF, event.getChannel(), key, DEFAULT_NOTE_OFF_VELOCITY));
+							}
+						}
+					}
+				}
+			} else {
+				for(Event event : entry.getValue()) {
+					for(int key : event.getKeys()) {
+						if(key != Note.NULL) {
+							result.add(new ShortMessage(ShortMessage.NOTE_ON, event.getChannel(), key, event.getVelocity()));
+						}
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	private List<Event> getOrCreateEventList(long tick) {
@@ -55,21 +107,4 @@ public abstract class Pattern {
 		}
 		return result;
 	}
-
-	/**
-	 * Support direct integer value and {@link Note.Dynamic} label as well.
-	 *
-	 * @param word
-	 * @return
-	 */
-	public static int parseVelocity(String word) {
-		int velocity;
-		if(word.matches("[0-9]+")) {
-			velocity = Integer.valueOf(word);
-		} else {
-			velocity = Note.Dynamic.fromLabel(word).velocity;
-		}
-		return velocity;
-	}
-
 }

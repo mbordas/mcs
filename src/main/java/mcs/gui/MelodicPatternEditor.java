@@ -11,12 +11,12 @@ import mcs.devices.Roland_FP30;
 import mcs.gui.components.MButton;
 import mcs.gui.components.MGrid;
 import mcs.gui.components.MelodicGrid;
+import mcs.melody.Block;
 import mcs.melody.Chord;
 import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.midi.MidiUtils;
 import mcs.midi.Tone;
-import mcs.pattern.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
@@ -125,9 +125,9 @@ public class MelodicPatternEditor {
 	}
 
 	void play() {
-		Pattern pattern = m_grid.toPattern(CHANNEL, m_chord);
-		System.out.println("Pattern size: " + pattern.size());
-		m_sequencer.set(pattern);
+		Block block = m_grid.toBlock(CHANNEL, m_chord);
+		System.out.println("Block size: " + block.size());
+		m_sequencer.set(block);
 		m_sequencer.enableLooping(true);
 		try {
 			m_sequencer.start();

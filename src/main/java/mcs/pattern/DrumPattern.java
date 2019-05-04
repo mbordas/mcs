@@ -16,6 +16,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package mcs.pattern;
 
 import mcs.melody.Note;
+import mcs.melody.Time;
 import mcs.midi.Drum;
 import mcs.utils.FileUtils;
 
@@ -26,7 +27,11 @@ import javax.sound.midi.Track;
 import java.io.File;
 import java.io.IOException;
 
-public class DrumPattern {
+public class DrumPattern extends Pattern {
+
+	public DrumPattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
+		super(timeSignature, ticksPerBeat);
+	}
 
 	public static long importPattern(File patternFile, Track track, long tickStart) throws IOException, InvalidMidiDataException {
 

@@ -14,6 +14,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 import mcs.MSequencer;
+import mcs.melody.Block;
 import mcs.melody.Chord;
 import mcs.melody.Note;
 import mcs.melody.Time;
@@ -61,11 +62,11 @@ public class Sandbox {
 	}
 
 	public static void playLive() throws MidiUnavailableException {
-		Pattern pattern = new Pattern(new Time.TimeSignature(4, 4), 4);
+		Block block = new Block(new Time.TimeSignature(4, 4), 4);
 
-		pattern.add(Drum.CHANNEL, Note.C2, Note.Dynamic.FORTISSIMO.velocity, 1, 4);
-		pattern.add(Drum.CHANNEL, Note.C2 + 4, Note.Dynamic.FORTISSIMO.velocity, 2, 4);
-		pattern.add(Drum.CHANNEL, Note.C2 + 7, Note.Dynamic.FORTISSIMO.velocity, 3, 4);
+		block.add(Drum.CHANNEL, Note.C2, Note.Dynamic.FORTISSIMO.velocity, 1, 4);
+		block.add(Drum.CHANNEL, Note.C2 + 4, Note.Dynamic.FORTISSIMO.velocity, 2, 4);
+		block.add(Drum.CHANNEL, Note.C2 + 7, Note.Dynamic.FORTISSIMO.velocity, 3, 4);
 
 		MidiDevice device = MidiUtils.getMidiOutDevice();
 		if(device == null) {
@@ -77,11 +78,11 @@ public class Sandbox {
 			Receiver receiver = device.getReceiver();
 
 			MSequencer sequencer = new MSequencer(receiver, 60);
-			sequencer.set(pattern);
+			sequencer.set(block);
 
 			sequencer.start();
 
-			Thread.sleep(pattern.getDuration_ms(sequencer.getTempo_bpm()));
+			Thread.sleep(block.getDuration_ms(sequencer.getTempo_bpm()));
 
 			sequencer.stop();
 

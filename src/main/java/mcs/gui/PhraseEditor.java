@@ -13,36 +13,61 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui.components;
+package mcs.gui;
 
-import mcs.melody.Block;
-import mcs.melody.Time;
+import mcs.gui.components.MButton;
+import mcs.gui.components.PhraseGrid;
+import mcs.midi.Drum;
+import mcs.pattern.Phrase;
 
-import java.util.Map;
+import javax.swing.*;
+import java.awt.*;
 
-public class DrumGrid extends MGrid {
+public class PhraseEditor {
 
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
+	MButton m_playBtn;
+	PhraseGrid m_grid;
+
+	private Phrase m_phrase;
+
+	public PhraseEditor(Phrase phrase) {
+		m_phrase = phrase;
 	}
 
-	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
+	public void show() {
+		JFrame frame = new JFrame("Phrase Editor");
+		Container content = frame.getContentPane();
+		content.setLayout(new BorderLayout());
 
-		int row = 0;
-		for(int key : m_keyMapping.values()) {
-			for(int tick = 0; tick < getMatrixWidth(); tick++) {
-				int velocity = m_velocityMatrix[tick][row];
+		// Controls
+		JPanel controls = new JPanel();
+		m_playBtn = new MButton("Play");
+		//		m_playBtn.addActionListener(m_actionListener);
 
-				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
-				}
-			}
+		controls.add(m_playBtn);
 
-			row++;
-		}
+		content.add(controls, BorderLayout.NORTH);
 
-		return result;
+		m_grid = new PhraseGrid(m_phrase);
+		content.add(m_grid, BorderLayout.CENTER);
+
+		frame.pack();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
 	}
 
+	public static void main(String[] args) {
+		Phrase phrase = new Phrase();
+		phrase.setChord(0, "E7");
+		//		phrase.setChord(1, "A7");
+		//		phrase.setChord(2, "E7");
+		//		phrase.setChord(3, "%");
+
+		phrase.addInstrument("Piano", 0);
+		phrase.addInstrument("Drums", Drum.CHANNEL);
+
+		UIUtils.DEBUG = true;
+
+		new PhraseEditor(phrase).show();
+	}
 }

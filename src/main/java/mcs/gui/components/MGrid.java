@@ -25,10 +25,10 @@ public class MGrid extends JComponent {
 	public static final int CELL_PADDING_px = 2;
 	public static final int ROW_LABEL_WIDTH_px = 200;
 
-	static Color m_backgroundColor = Color.darkGray;
+	public static Color BACKGROUND_COLOR = Color.darkGray;
+	public static Color LABEL_COLOR = Color.WHITE;
 	static Color m_emptyCellColor = Color.lightGray;
 	static Color m_filledCellColor = Color.orange;
-	static Color m_labelColor = Color.WHITE;
 
 	// Edition
 	enum EditionMode {WRITE, ERASE, MOVE}
@@ -64,7 +64,7 @@ public class MGrid extends JComponent {
 		m_timeSignature = timeSignature;
 		m_keyMapping = keyMapping;
 
-		// Total number of raws in grid (x-axis)
+		// Total number of columns in grid (x-axis)
 		int columns = bars * timeSignature.getBeatsInBar() * m_ticksPerBeat;
 		int rows = m_keyMapping.size();
 		// Each available key is a line (y-axis)
@@ -249,7 +249,7 @@ public class MGrid extends JComponent {
 		}
 
 		// Clearing display
-		m_graphics2D.setPaint(m_backgroundColor);
+		m_graphics2D.setPaint(BACKGROUND_COLOR);
 		m_graphics2D.fillRect(0, 0, getSize().width, getSize().height);
 
 		m_graphics2D.setColor(m_emptyCellColor);
@@ -261,7 +261,7 @@ public class MGrid extends JComponent {
 			}
 		}
 
-		m_graphics2D.setColor(m_labelColor);
+		m_graphics2D.setColor(LABEL_COLOR);
 		int row = 0;
 		for(String label : m_keyMapping.keySet()) {
 			Rectangle2D labelMetrics = m_graphics2D.getFontMetrics().getStringBounds(label, m_graphics2D);

@@ -15,7 +15,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.pattern;
 
+import mcs.melody.Block;
 import mcs.melody.Note;
+import mcs.melody.Time;
 import mcs.utils.FileUtils;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -25,7 +27,16 @@ import javax.sound.midi.Track;
 import java.io.File;
 import java.io.IOException;
 
-public class MelodicPattern {
+public class MelodicPattern extends Pattern {
+
+	public MelodicPattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
+		super(timeSignature, ticksPerBeat);
+	}
+
+	public Block toBlock() {
+		Block result = null;
+		return result;
+	}
 
 	/**
 	 * @param patternFile
@@ -102,4 +113,5 @@ public class MelodicPattern {
 	static int getKey(int[] chord, int interval) {
 		return (interval - 1) < chord.length ? chord[interval - 1] : Note.NULL;
 	}
+
 }

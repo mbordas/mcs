@@ -56,6 +56,8 @@ public class Note {
 
 	public static final int NULL = 0;
 
+	public static final int C0 = 12;
+
 	public static final int A0 = 21;
 	public static final int B0 = 23;
 
@@ -68,6 +70,7 @@ public class Note {
 	public static final int B1 = 35;
 
 	public static final int C2 = 36;
+	public static final int A2 = 45;
 
 	public static final int C3 = 48;
 	public static final int D3 = 50;

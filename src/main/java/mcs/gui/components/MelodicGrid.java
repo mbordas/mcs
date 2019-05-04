@@ -6,8 +6,8 @@
 
 package mcs.gui.components;
 
+import mcs.melody.Block;
 import mcs.melody.Time;
-import mcs.pattern.Pattern;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,8 +18,8 @@ public class MelodicGrid extends MGrid {
 		super(timeSignature, bars, getKeyMapping());
 	}
 
-	public Pattern toPattern(int channel, int[] chord) {
-		Pattern result = new Pattern(m_timeSignature, m_ticksPerBeat);
+	public Block toBlock(int channel, int[] chord) {
+		Block result = new Block(m_timeSignature, m_ticksPerBeat);
 
 		int row = 0;
 		for(int interval : m_keyMapping.values()) {

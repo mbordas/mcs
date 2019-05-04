@@ -13,28 +13,27 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import mcs.melody.Time;
-import mcs.midi.Message;
+package pattern;
+
+import mcs.pattern.Phrase;
 import org.junit.Test;
 
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-public class TimeTest {
-
-	@Test
-	public void computeTickDuration() {
-		assertEquals(1000, Time.computeTickDuration_ms(60, 1));
-		assertEquals(500, Time.computeTickDuration_ms(120, 1));
-		assertEquals(500, Time.computeTickDuration_ms(60, 2));
-	}
+public class PhraseTest {
 
 	@Test
-	public void createTempoMessage() throws InvalidMidiDataException {
-		MetaMessage metaMessage = Time.createTempoMessage(120);
-		assertTrue(Message.toString(metaMessage).contains(" 120 BPM"));
+	public void getLength() {
+		Phrase phrase = new Phrase();
+
+		assertEquals(0, phrase.getLength()); // Empty
+
+		phrase.setChord(0, "A7");
+
+		assertEquals(1, phrase.getLength());
+
+		phrase.setChord(2, "Dm");
+
+		assertEquals(3, phrase.getLength());
 	}
 }

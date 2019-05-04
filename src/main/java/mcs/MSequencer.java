@@ -15,9 +15,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs;
 
+import mcs.melody.Block;
 import mcs.melody.Time;
 import mcs.midi.Message;
-import mcs.pattern.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
@@ -30,7 +30,7 @@ public class MSequencer {
 
 	private final Receiver m_receiver;
 	private final int m_tempo_bpm;
-	private Pattern m_pattern;
+	private Block m_block;
 
 	private final AtomicBoolean m_running = new AtomicBoolean(false);
 	private final Runnable m_loop;
@@ -57,7 +57,7 @@ public class MSequencer {
 
 	public void enableLooping(boolean enable) {
 		if(enable) {
-			m_restartAtTick = m_pattern.size();
+			m_restartAtTick = m_block.size();
 		} else {
 			m_restartAtTick = null;
 		}
@@ -90,11 +90,11 @@ public class MSequencer {
 	}
 
 	//
-	// Pattern management
+	// Block management
 	//
 
-	public void set(Pattern pattern) {
-		m_pattern = pattern;
+	public void set(Block block) {
+		m_block = block;
 	}
 
 	//
@@ -111,7 +111,7 @@ public class MSequencer {
 			@Override
 			public void run() {
 				long tick = 0;
-				long tickDuration_ms = Time.computeTickDuration_ms(m_tempo_bpm, m_pattern.getTicksPerBeat());
+				long tickDuration_ms = Time.computeTickDuration_ms(m_tempo_bpm, m_block.getTicksPerBeat());
 
 				System.out.println("Tick duration: " + tickDuration_ms + " ms");
 
@@ -123,23 +123,23 @@ public class MSequencer {
 
 					// If pattern not set or played to the end, escaping the loop
 					System.out.print("t" + tick);
-					if(m_pattern == null) {
+					if(m_block == null) {
 						break;
-					} else if(tick > m_pattern.size()) {
+					} else if(tick > m_block.size()) {
 						break;
 					}
 
 					// Computing MIDI messages to be played simultaneously
 					List<ShortMessage> events = null;
 
-					if(m_pattern.hasEvents(tick)) {
-						System.out.println();
-						events = m_pattern.getEventList(tick);
-						for(ShortMessage event : events) { // Just for logging
-							System.out.println(" " + Message.toString(event));
-						}
-					} else {
-						System.out.println(" -");
+					System.out.println();
+					try {
+						events = m_block.toMessages(tick);
+					} catch(InvalidMidiDataException e) {
+						e.printStackTrace();
+					}
+					for(ShortMessage event : events) { // Just for logging
+						System.out.println(" " + Message.toString(event));
 					}
 
 					// Before playing the notes, we computes how long it took to build the MIDI messages

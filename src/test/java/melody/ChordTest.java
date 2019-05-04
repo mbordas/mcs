@@ -13,36 +13,32 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui.components;
+package melody;
 
-import mcs.melody.Block;
-import mcs.melody.Time;
+import mcs.melody.Chord;
+import mcs.melody.Note;
+import org.junit.Test;
 
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
 
-public class DrumGrid extends MGrid {
+public class ChordTest {
 
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
+	@Test
+	public void byName() {
+
+		int[] C = Chord.byName("C", 3);
+
+		assertEquals(7, C.length);
+		assertEquals(Note.C3, C[0]); // key
+		assertEquals(Note.E3, C[2]); // major third
+		assertEquals(Note.G3, C[4]); // fifth
+
+		int[] A7 = Chord.byName("A7", 2);
+
+		assertEquals(7, A7.length);
+		assertEquals(Note.A2, A7[0]); // key
+		assertEquals(Note.C3 + 1, A7[2]); // major third
+		assertEquals(Note.E3, A7[4]); // fifth
+		assertEquals(Note.G3, A7[6]); // minor seventh
 	}
-
-	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
-
-		int row = 0;
-		for(int key : m_keyMapping.values()) {
-			for(int tick = 0; tick < getMatrixWidth(); tick++) {
-				int velocity = m_velocityMatrix[tick][row];
-
-				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
-				}
-			}
-
-			row++;
-		}
-
-		return result;
-	}
-
 }

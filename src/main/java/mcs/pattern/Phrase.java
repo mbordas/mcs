@@ -13,36 +13,56 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui.components;
+package mcs.pattern;
 
-import mcs.melody.Block;
-import mcs.melody.Time;
-
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-public class DrumGrid extends MGrid {
+public class Phrase {
 
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
+	public static class Instrument {
+		public String label;
+		public int channel;
+
+		public Instrument(String label, int channel) {
+			this.label = label;
+			this.channel = channel;
+		}
 	}
 
-	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
+	Map<Integer, String> m_chords; // Stores chords ordered by bar index starting by 0.
+	Map<Instrument, Map<Integer, Pattern>> m_patterns;
 
-		int row = 0;
-		for(int key : m_keyMapping.values()) {
-			for(int tick = 0; tick < getMatrixWidth(); tick++) {
-				int velocity = m_velocityMatrix[tick][row];
+	public Phrase() {
+		m_chords = new TreeMap<>();
+		m_patterns = new LinkedHashMap<>();
+	}
 
-				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
-				}
-			}
-
-			row++;
+	public int getLength() {
+		int result = 0;
+		for(int index : m_chords.keySet()) {
+			result = Math.max(result, index + 1);
 		}
-
 		return result;
 	}
 
+	public String getChord(int index) {
+		return m_chords.get(index);
+	}
+
+	public Instrument addInstrument(String label, int channel) {
+		Instrument result = new Instrument(label, channel);
+		m_patterns.put(result, new TreeMap<Integer, Pattern>());
+		return result;
+	}
+
+	public Set<Instrument> getInstruments() {
+		return m_patterns.keySet();
+	}
+
+	public void setChord(int index, String name) {
+		m_chords.put(index, name);
+	}
 }

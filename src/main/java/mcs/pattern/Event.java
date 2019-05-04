@@ -13,36 +13,56 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui.components;
+package mcs.pattern;
 
-import mcs.melody.Block;
-import mcs.melody.Time;
+/**
+ * The {@link Event} is a piece of {@link Pattern}, it describes a note being pressed then released.
+ */
+public class Event {
 
-import java.util.Map;
+	public static final int DEFAULT_OCTAVE_PITCH = 0;
 
-public class DrumGrid extends MGrid {
+	// Timing
+	final long m_tick;
+	final long m_duration_ticks;
 
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
+	// Notes
+	final int m_channel;
+	final int[] m_keys;
+	final int m_octavePitch;
+	// Dynamic
+	final int m_velocity;
+
+	public Event(long tick, int channel, int[] keys, int velocity, long duration_ticks) {
+		m_tick = tick;
+		m_channel = channel;
+		m_duration_ticks = duration_ticks;
+		m_keys = keys;
+		m_octavePitch = DEFAULT_OCTAVE_PITCH;
+		m_velocity = velocity;
 	}
 
-	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
-
-		int row = 0;
-		for(int key : m_keyMapping.values()) {
-			for(int tick = 0; tick < getMatrixWidth(); tick++) {
-				int velocity = m_velocityMatrix[tick][row];
-
-				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
-				}
-			}
-
-			row++;
-		}
-
-		return result;
+	public long getTick() {
+		return m_tick;
 	}
 
+	public long getDuration_ticks() {
+		return m_duration_ticks;
+	}
+
+	public int getChannel() {
+		return m_channel;
+	}
+
+	public int[] getKeys() {
+		return m_keys;
+	}
+
+	public int getOctavePitch() {
+		return m_octavePitch;
+	}
+
+	public int getVelocity() {
+		return m_velocity;
+	}
 }
