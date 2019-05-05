@@ -29,8 +29,8 @@ public abstract class Pattern {
 
 	public static final String OPTION_TICKS_PER_BEAT = "ticks_per_beat";
 
-	private final Time.TimeSignature m_timeSignature;
-	private final int m_ticksPerBeat;
+	protected final Time.TimeSignature m_timeSignature;
+	protected final int m_ticksPerBeat;
 	protected final Map<Long, List<Event>> m_tickEvents = new TreeMap<>();
 
 	protected Pattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
@@ -38,9 +38,15 @@ public abstract class Pattern {
 		m_ticksPerBeat = ticksPerBeat;
 	}
 
-	public void add(int channel, int key, int velocity, long tickStart, long tickStop) {
+	/**
+	 * @param level     Starts with 1.
+	 * @param velocity
+	 * @param tickStart
+	 * @param tickStop
+	 */
+	public void add(int level, int velocity, long tickStart, long tickStop) {
 		List<Event> tickEvents = getOrCreateEventList(tickStart);
-		tickEvents.add(new Event(tickStart, channel, new int[] { key }, velocity, tickStop - tickStart));
+		tickEvents.add(new Event(new int[] { level }, velocity, tickStop - tickStart));
 	}
 
 	public long size() {

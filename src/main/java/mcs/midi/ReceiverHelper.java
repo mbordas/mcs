@@ -42,4 +42,20 @@ public class ReceiverHelper {
 	public static void selectInstrument(Receiver receiver, int channel, Tone tone) throws InvalidMidiDataException {
 		selectInstrument(receiver, channel, tone.m_msb, tone.m_lsb, tone.m_pc);
 	}
+
+	public static void stopAllNotes(Receiver receiver) throws InvalidMidiDataException {
+		for(int channel = 0; channel < 10; channel++) {
+			if(channel != Drum.CHANNEL) {
+				stopAllNotes(receiver, channel);
+			}
+		}
+	}
+
+	public static void stopAllNotes(Receiver receiver, int channel) throws InvalidMidiDataException {
+		for(int key = 0; key < 127; key++) {
+			ShortMessage off = new ShortMessage();
+			off.setMessage(ShortMessage.NOTE_OFF, channel, key, 127);
+			receiver.send(off, -1L);
+		}
+	}
 }

@@ -16,53 +16,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package mcs.pattern;
 
 /**
- * The {@link Event} is a piece of {@link Pattern}, it describes a note being pressed then released.
+ * The {@link Event} is a piece of {@link Pattern}, it describes a 'level' being pressed then released.
  */
 public class Event {
 
 	public static final int DEFAULT_OCTAVE_PITCH = 0;
 
 	// Timing
-	final long m_tick;
 	final long m_duration_ticks;
 
-	// Notes
-	final int m_channel;
-	final int[] m_keys;
+	// Levels
+	final int[] m_levels;
 	final int m_octavePitch;
 	// Dynamic
 	final int m_velocity;
 
-	public Event(long tick, int channel, int[] keys, int velocity, long duration_ticks) {
-		m_tick = tick;
-		m_channel = channel;
+	public Event(int[] levels, int velocity, long duration_ticks) {
 		m_duration_ticks = duration_ticks;
-		m_keys = keys;
-		m_octavePitch = DEFAULT_OCTAVE_PITCH;
+		m_levels = levels;
 		m_velocity = velocity;
-	}
-
-	public long getTick() {
-		return m_tick;
+		m_octavePitch = DEFAULT_OCTAVE_PITCH;
 	}
 
 	public long getDuration_ticks() {
 		return m_duration_ticks;
 	}
 
-	public int getChannel() {
-		return m_channel;
-	}
-
-	public int[] getKeys() {
-		return m_keys;
-	}
-
-	public int getOctavePitch() {
-		return m_octavePitch;
+	public int[] getLevels() {
+		return m_levels;
 	}
 
 	public int getVelocity() {
 		return m_velocity;
+	}
+
+	public int getOctavePitch() {
+		return m_octavePitch;
 	}
 }

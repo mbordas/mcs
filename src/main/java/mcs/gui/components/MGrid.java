@@ -8,6 +8,7 @@ package mcs.gui.components;
 
 import mcs.melody.Note;
 import mcs.melody.Time;
+import mcs.pattern.Pattern;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +18,9 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Rectangle2D;
 import java.util.Map;
 
+/**
+ * The {@link MGrid} is a Swing component that helps edition of {@link Pattern}'s {@link Event}s.
+ */
 public class MGrid extends JComponent {
 
 	public static final int CELL_WIDTH_px = 40;
@@ -42,31 +46,30 @@ public class MGrid extends JComponent {
 
 	// Pattern
 	Time.TimeSignature m_timeSignature;
-	Map<String, Integer> m_keyMapping;
+	Map<String, Integer> m_levelMapping;
 	int[][] m_velocityMatrix;
 	int m_currentVelocity = Note.DEFAULT_VELOCITY;
 
 	RowClickListener m_rowClickListener;
 
 	public interface RowClickListener {
+		void onPress(int level);
 
-		void onPress(int key);
-
-		void onRelease(int key);
+		void onRelease(int level);
 	}
 
 	/**
 	 * @param timeSignature
 	 * @param bars
-	 * @param keyMapping    Entries are put on rows from top to bottom.
+	 * @param levelMapping  Entries are put on rows from top to bottom.
 	 */
-	public MGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
+	public MGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> levelMapping) {
 		m_timeSignature = timeSignature;
-		m_keyMapping = keyMapping;
+		m_levelMapping = levelMapping;
 
 		// Total number of columns in grid (x-axis)
 		int columns = bars * timeSignature.getBeatsInBar() * m_ticksPerBeat;
-		int rows = m_keyMapping.size();
+		int rows = m_levelMapping.size();
 		// Each available key is a line (y-axis)
 		m_velocityMatrix = new int[columns][rows];
 		for(int x = 0; x < columns; x++) {
@@ -98,9 +101,9 @@ public class MGrid extends JComponent {
 
 					if(column < 0 && m_rowClickListener != null) {
 						int i = 0;
-						for(Integer key : m_keyMapping.values()) {
+						for(Integer level : m_levelMapping.values()) {
 							if(i == row) {
-								m_rowClickListener.onPress(key);
+								m_rowClickListener.onPress(level);
 							}
 							i++;
 						}
@@ -117,9 +120,9 @@ public class MGrid extends JComponent {
 
 				if(column < 0 && m_rowClickListener != null) {
 					int i = 0;
-					for(Integer key : m_keyMapping.values()) {
+					for(Integer level : m_levelMapping.values()) {
 						if(i == row) {
-							m_rowClickListener.onRelease(key);
+							m_rowClickListener.onRelease(level);
 						}
 						i++;
 					}
@@ -263,7 +266,7 @@ public class MGrid extends JComponent {
 
 		m_graphics2D.setColor(LABEL_COLOR);
 		int row = 0;
-		for(String label : m_keyMapping.keySet()) {
+		for(String label : m_levelMapping.keySet()) {
 			Rectangle2D labelMetrics = m_graphics2D.getFontMetrics().getStringBounds(label, m_graphics2D);
 			int marginBottom_px = (CELL_HEIGHT_px - (int) labelMetrics.getHeight()) / 2;
 			int y_px = GRID_PADDING_px + (row + 1) * CELL_HEIGHT_px - marginBottom_px;

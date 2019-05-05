@@ -27,15 +27,15 @@ public class DrumGrid extends MGrid {
 	}
 
 	public Block toBlock(int channel) {
-		Block result = new Block(m_timeSignature, m_ticksPerBeat);
+		Block result = new Block(m_timeSignature, m_ticksPerBeat, channel);
 
 		int row = 0;
-		for(int key : m_keyMapping.values()) {
+		for(int key : m_levelMapping.values()) {
 			for(int tick = 0; tick < getMatrixWidth(); tick++) {
 				int velocity = m_velocityMatrix[tick][row];
 
 				if(velocity > 0) {
-					result.add(channel, key, velocity, tick, tick + 1);
+					result.add(key, velocity, tick, tick + 1);
 				}
 			}
 

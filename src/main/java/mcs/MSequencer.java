@@ -18,6 +18,7 @@ package mcs;
 import mcs.melody.Block;
 import mcs.melody.Time;
 import mcs.midi.Message;
+import mcs.midi.ReceiverHelper;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
@@ -78,6 +79,11 @@ public class MSequencer {
 		if(m_running.get()) {
 			m_running.set(false);
 			m_stopped.acquire(1);
+		}
+		try {
+			ReceiverHelper.stopAllNotes(m_receiver);
+		} catch(InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -173,15 +179,17 @@ public class MSequencer {
 	}
 
 	public static void sendNoteON(Receiver receiver, int channel, int key, int velocity) throws InvalidMidiDataException {
+		System.out.println("ON chan=" + channel + ",note=" + key + ",vel=" + velocity);
 		ShortMessage on = new ShortMessage();
 		on.setMessage(ShortMessage.NOTE_ON, channel, key, velocity);
 		receiver.send(on, -1);
 	}
 
 	public static void sendNoteOFF(Receiver receiver, int channel, int key) throws InvalidMidiDataException {
-		ShortMessage on = new ShortMessage();
-		on.setMessage(ShortMessage.NOTE_OFF, channel, key, 0);
-		receiver.send(on, -1);
+		System.out.println("OFF chan=" + channel + ",note=" + key);
+		ShortMessage off = new ShortMessage();
+		off.setMessage(ShortMessage.NOTE_OFF, channel, key, 0);
+		receiver.send(off, -1);
 	}
 
 	/**

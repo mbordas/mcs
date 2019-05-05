@@ -17,6 +17,7 @@ package mcs.melody;
 
 import mcs.pattern.Event;
 import mcs.pattern.Pattern;
+import mcs.utils.StringUtils;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -26,7 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * A {@link Block} is a piece of partition. It contains {@link Event}s. It can be constructed from {@link Pattern}.
+ * A {@link Block} is a piece of partition. It contains {@link ShortMessage}s. It can be constructed from {@link Pattern}.
  */
 public class Block {
 
@@ -34,11 +35,13 @@ public class Block {
 
 	private final Time.TimeSignature m_timeSignature;
 	private final int m_ticksPerBeat;
-	protected final Map<Long, List<Event>> m_tickEvents = new TreeMap<>();
+	private int m_channel;
+	protected final Map<Long, List<Event>> m_tickEvents = new TreeMap<>(); // Here events are stored with levels=keys
 
-	public Block(Time.TimeSignature timeSignature, int ticksPerBeat) {
+	public Block(Time.TimeSignature timeSignature, int ticksPerBeat, int channel) {
 		m_timeSignature = timeSignature;
 		m_ticksPerBeat = ticksPerBeat;
+		m_channel = channel;
 	}
 
 	public long size() {
@@ -53,9 +56,26 @@ public class Block {
 		return m_ticksPerBeat;
 	}
 
-	public void add(int channel, int key, int velocity, long tickStart, long tickStop) {
+	public void add(int note, int velocity, long tickStart, long tickStop) {
 		List<Event> tickEvents = getOrCreateEventList(tickStart);
-		tickEvents.add(new Event(tickStart, channel, new int[] { key }, velocity, tickStop - tickStart));
+		tickEvents.add(new Event(new int[] { note }, velocity, tickStop - tickStart));
+	}
+
+	public String getContent() {
+		StringBuilder result = new StringBuilder();
+		result.append(Pattern.OPTION_TICKS_PER_BEAT + "=" + m_ticksPerBeat + "\n");
+
+		for(Map.Entry<Long, List<Event>> entry : m_tickEvents.entrySet()) {
+			long tick = entry.getKey();
+			for(Event event : entry.getValue()) {
+				result.append("" + event.getOctavePitch() + ";");
+				result.append(StringUtils.toString(event.getLevels(), ",") + ";");
+				result.append("" + tick + ";" + event.getDuration_ticks() + ";");
+				result.append("" + event.getVelocity() + "\n");
+			}
+		}
+
+		return result.toString();
 	}
 
 	/**
@@ -79,18 +99,18 @@ public class Block {
 				long distance = tick - _tick;
 				for(Event event : entry.getValue()) {
 					if(event.getDuration_ticks() == distance) {
-						for(int key : event.getKeys()) {
-							if(key != Note.NULL) {
-								result.add(new ShortMessage(ShortMessage.NOTE_OFF, event.getChannel(), key, DEFAULT_NOTE_OFF_VELOCITY));
+						for(int note : event.getLevels()) {
+							if(note != Note.NULL) {
+								result.add(new ShortMessage(ShortMessage.NOTE_OFF, m_channel, note, DEFAULT_NOTE_OFF_VELOCITY));
 							}
 						}
 					}
 				}
 			} else {
 				for(Event event : entry.getValue()) {
-					for(int key : event.getKeys()) {
-						if(key != Note.NULL) {
-							result.add(new ShortMessage(ShortMessage.NOTE_ON, event.getChannel(), key, event.getVelocity()));
+					for(int note : event.getLevels()) {
+						if(note != Note.NULL) {
+							result.add(new ShortMessage(ShortMessage.NOTE_ON, m_channel, note, event.getVelocity()));
 						}
 					}
 				}
@@ -107,4 +127,5 @@ public class Block {
 		}
 		return result;
 	}
+
 }

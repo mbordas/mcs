@@ -19,6 +19,7 @@ import mcs.melody.Block;
 import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.utils.FileUtils;
+import mcs.utils.StringUtils;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
@@ -26,6 +27,8 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public class MelodicPattern extends Pattern {
 
@@ -33,9 +36,43 @@ public class MelodicPattern extends Pattern {
 		super(timeSignature, ticksPerBeat);
 	}
 
-	public Block toBlock() {
-		Block result = null;
+	public Block toBlock(int channel, int[] chord) {
+		Block result = new Block(m_timeSignature, m_ticksPerBeat, channel);
+
+		// Translating 'pattern' events
+		for(Map.Entry<Long, List<Event>> entry : m_tickEvents.entrySet()) {
+			long tick = entry.getKey();
+			for(Event _event : entry.getValue()) {
+				// Computing notes
+				int[] intervals = _event.getLevels();
+				for(int interval : intervals) {
+					int note = chord[interval - 1];
+
+					if(note != Note.NULL) {
+						result.add(note, _event.getVelocity(), tick, tick + _event.getDuration_ticks());
+					}
+				}
+			}
+		}
+
 		return result;
+	}
+
+	public String getContent() {
+		StringBuilder result = new StringBuilder();
+		result.append(Pattern.OPTION_TICKS_PER_BEAT + "=" + m_ticksPerBeat + "\n");
+
+		for(Map.Entry<Long, List<Event>> entry : m_tickEvents.entrySet()) {
+			long tick = entry.getKey();
+			for(Event event : entry.getValue()) {
+				result.append("" + event.getOctavePitch() + ";");
+				result.append(StringUtils.toString(event.getLevels(), ",") + ";");
+				result.append("" + tick + ";" + event.getDuration_ticks() + ";");
+				result.append("" + event.getVelocity() + "\n");
+			}
+		}
+
+		return result.toString();
 	}
 
 	/**

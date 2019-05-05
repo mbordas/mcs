@@ -15,14 +15,18 @@ import mcs.melody.Block;
 import mcs.melody.Chord;
 import mcs.melody.Note;
 import mcs.melody.Time;
+import mcs.midi.Message;
 import mcs.midi.MidiUtils;
 import mcs.midi.Tone;
+import mcs.pattern.MelodicPattern;
+import mcs.utils.StringUtils;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -31,6 +35,7 @@ import java.awt.event.ActionListener;
 public class MelodicPatternEditor {
 
 	public static final int CHANNEL = 0;
+	public static final int OCTAVE = 3;
 
 	JButton m_clearBtn, m_playBtn, m_stopBtn;
 
@@ -60,8 +65,8 @@ public class MelodicPatternEditor {
 
 		m_grid.setRowClickListener(new MGrid.RowClickListener() {
 			@Override
-			public void onPress(int key) {
-				int note = m_chord[key - 1];
+			public void onPress(int interval) {
+				int note = m_chord[interval - 1];
 				if(note == Note.NULL) {
 					return;
 				}
@@ -74,8 +79,8 @@ public class MelodicPatternEditor {
 			}
 
 			@Override
-			public void onRelease(int key) {
-				int note = m_chord[key - 1];
+			public void onRelease(int interval) {
+				int note = m_chord[interval - 1];
 				if(note == Note.NULL) {
 					return;
 				}
@@ -125,13 +130,26 @@ public class MelodicPatternEditor {
 	}
 
 	void play() {
-		Block block = m_grid.toBlock(CHANNEL, m_chord);
-		System.out.println("Block size: " + block.size());
-		m_sequencer.set(block);
-		m_sequencer.enableLooping(true);
 		try {
+			MelodicPattern melodicPattern = m_grid.toPattern();
+			System.out.println("Pattern:\n" + melodicPattern.getContent());
+
+			System.out.println("chord=" + StringUtils.toString(m_chord, ","));
+
+			Block block = melodicPattern.toBlock(CHANNEL, m_chord);
+			System.out.println("Block:\n" + block.getContent());
+
+			for(long tick = 0; tick < block.size(); tick++) {
+				System.out.println("t=" + tick);
+				for(ShortMessage message : block.toMessages(tick)) {
+					System.out.println(Message.toString(message));
+				}
+			}
+
+			m_sequencer.set(block);
+			m_sequencer.enableLooping(true);
 			m_sequencer.start();
-		} catch(InterruptedException e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}

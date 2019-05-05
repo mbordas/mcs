@@ -17,7 +17,6 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
-import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import java.io.File;
 import java.io.IOException;
@@ -45,14 +44,6 @@ public class MidiFilePlayer {
 		}
 
 		return result;
-	}
-
-	static void stopAllNotes(Receiver receiver, int channel) throws InvalidMidiDataException {
-		for(int key = 0; key < 127; key++) {
-			ShortMessage off = new ShortMessage();
-			off.setMessage(ShortMessage.NOTE_OFF, channel, key, 127);
-			receiver.send(off, -1L);
-		}
 	}
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException, MidiUnavailableException, InterruptedException {
@@ -88,7 +79,7 @@ public class MidiFilePlayer {
 
 		for(int channel = 0; channel < 10; channel++) {
 			if(channel != Drum.CHANNEL) {
-				stopAllNotes(receiver, channel);
+				ReceiverHelper.stopAllNotes(receiver, channel);
 			}
 		}
 
@@ -110,7 +101,7 @@ public class MidiFilePlayer {
 
 			for(int channel = 0; channel < 10; channel++) {
 				if(channel != Drum.CHANNEL) {
-					stopAllNotes(receiver, channel);
+					ReceiverHelper.stopAllNotes(receiver, channel);
 				}
 			}
 

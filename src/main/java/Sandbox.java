@@ -62,11 +62,11 @@ public class Sandbox {
 	}
 
 	public static void playLive() throws MidiUnavailableException {
-		Block block = new Block(new Time.TimeSignature(4, 4), 4);
+		Block block = new Block(new Time.TimeSignature(4, 4), 4, Drum.CHANNEL);
 
-		block.add(Drum.CHANNEL, Note.C2, Note.Dynamic.FORTISSIMO.velocity, 1, 4);
-		block.add(Drum.CHANNEL, Note.C2 + 4, Note.Dynamic.FORTISSIMO.velocity, 2, 4);
-		block.add(Drum.CHANNEL, Note.C2 + 7, Note.Dynamic.FORTISSIMO.velocity, 3, 4);
+		block.add(Note.C2, Note.Dynamic.FORTISSIMO.velocity, 1, 4);
+		block.add(Note.C2 + 4, Note.Dynamic.FORTISSIMO.velocity, 2, 4);
+		block.add(Note.C2 + 7, Note.Dynamic.FORTISSIMO.velocity, 3, 4);
 
 		MidiDevice device = MidiUtils.getMidiOutDevice();
 		if(device == null) {

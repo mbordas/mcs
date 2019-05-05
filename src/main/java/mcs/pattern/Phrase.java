@@ -15,6 +15,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.pattern;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,11 +34,11 @@ public class Phrase {
 	}
 
 	Map<Integer, String> m_chords; // Stores chords ordered by bar index starting by 0.
-	Map<Instrument, Map<Integer, Pattern>> m_patterns;
+	Map<Instrument, Map<Integer, MelodicPattern>> m_melodicPatterns;
 
 	public Phrase() {
 		m_chords = new TreeMap<>();
-		m_patterns = new LinkedHashMap<>();
+		m_melodicPatterns = new LinkedHashMap<>();
 	}
 
 	public int getLength() {
@@ -52,14 +53,19 @@ public class Phrase {
 		return m_chords.get(index);
 	}
 
+	public Map<Instrument, MelodicPattern> getMelodicPatterns(int index) {
+		Map<Instrument, MelodicPattern> result = new HashMap<>();
+		return result;
+	}
+
 	public Instrument addInstrument(String label, int channel) {
 		Instrument result = new Instrument(label, channel);
-		m_patterns.put(result, new TreeMap<Integer, Pattern>());
+		m_melodicPatterns.put(result, new TreeMap<Integer, MelodicPattern>());
 		return result;
 	}
 
 	public Set<Instrument> getInstruments() {
-		return m_patterns.keySet();
+		return m_melodicPatterns.keySet();
 	}
 
 	public void setChord(int index, String name) {
