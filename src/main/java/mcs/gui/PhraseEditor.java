@@ -20,7 +20,7 @@ import mcs.gui.components.MButton;
 import mcs.gui.components.PhraseGrid;
 import mcs.melody.Block;
 import mcs.melody.Chord;
-import mcs.midi.MidiUtils;
+import mcs.midi.MidiInterface;
 import mcs.pattern.MelodicPattern;
 import mcs.pattern.Phrase;
 
@@ -101,7 +101,7 @@ public class PhraseEditor {
 
 		UIUtils.DEBUG = false;
 
-		MidiDevice device = MidiUtils.getMidiOutDevice();
+		MidiDevice device = MidiInterface.getMidiOutDevice();
 
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();

@@ -95,6 +95,10 @@ public class Drum {
 	public static Map<String, Integer> getBasicKeyMapping() {
 		Map<String, Integer> result = new LinkedHashMap<>();
 
+		result.put("Hand clap", HAND_CLAP);
+		result.put("Wood Block", LOW_WOOD_BLOCK);
+		result.put("Cowbell", COWBELL);
+		result.put("Crash Cymbal 1", CRASH_CYMBAL_1);
 		result.put("Open HH", OPEN_HIT_HAT);
 		result.put("Closed HH", CLOSED_HIT_HAT);
 		result.put("Snare", ACOUSTIC_SNARE);

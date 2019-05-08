@@ -69,7 +69,7 @@ public class MidiFilePlayer {
 		FileUtils.log("Tick duration:\t%d ms", tickDuration_ms);
 
 		// Getting device to play track
-		MidiDevice device = MidiUtils.getMidiOutDevice();
+		MidiDevice device = MidiInterface.getMidiOutDevice();
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();
 		}

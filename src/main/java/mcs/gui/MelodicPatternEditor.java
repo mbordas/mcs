@@ -16,7 +16,7 @@ import mcs.melody.Chord;
 import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.midi.Message;
-import mcs.midi.MidiUtils;
+import mcs.midi.MidiInterface;
 import mcs.midi.Tone;
 import mcs.pattern.MelodicPattern;
 import mcs.utils.StringUtils;
@@ -163,7 +163,7 @@ public class MelodicPatternEditor {
 	}
 
 	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException {
-		MidiDevice device = MidiUtils.getMidiOutDevice();
+		MidiDevice device = MidiInterface.getMidiOutDevice();
 
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();

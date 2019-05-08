@@ -23,7 +23,7 @@ import mcs.melody.Block;
 import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.midi.Drum;
-import mcs.midi.MidiUtils;
+import mcs.midi.MidiInterface;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
@@ -137,7 +137,7 @@ public class DrumPatternEditor {
 	}
 
 	public static void main(String[] args) throws MidiUnavailableException {
-		MidiDevice device = MidiUtils.getMidiOutDevice();
+		MidiDevice device = MidiInterface.getMidiOutDevice();
 
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();
@@ -146,7 +146,7 @@ public class DrumPatternEditor {
 		device.open();
 		Receiver receiver = device.getReceiver();
 
-		MSequencer sequencer = new MSequencer(receiver, 60);
+		MSequencer sequencer = new MSequencer(receiver, 100);
 
 		new DrumPatternEditor(sequencer).show();
 	}
