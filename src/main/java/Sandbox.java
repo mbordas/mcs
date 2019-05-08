@@ -20,7 +20,7 @@ import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.midi.Drum;
 import mcs.midi.Message;
-import mcs.midi.MidiUtils;
+import mcs.midi.MidiInterface;
 import mcs.midi.SequenceUtils;
 import mcs.pattern.DrumPattern;
 import mcs.pattern.MelodicPattern;
@@ -40,6 +40,7 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Track;
+import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 
@@ -58,7 +59,31 @@ public class Sandbox {
 		//
 		//		playDrums();
 
-		playLive();
+		//		playLive();
+
+		MidiDevice device = MidiInterface.getMidiInDevice();
+		try {
+			device.open();
+			Transmitter transmitter = device.getTransmitter();
+			transmitter.setReceiver(new Receiver() {
+				@Override
+				public void send(MidiMessage midiMessage, long l) {
+					System.out.println(Message.toString(midiMessage));
+				}
+
+				@Override
+				public void close() {
+
+				}
+			});
+
+			Thread.sleep(10000);
+
+		} finally {
+			if(device != null) {
+				device.close();
+			}
+		}
 	}
 
 	public static void playLive() throws MidiUnavailableException {
@@ -68,7 +93,7 @@ public class Sandbox {
 		block.add(Note.C2 + 4, Note.Dynamic.FORTISSIMO.velocity, 2, 4);
 		block.add(Note.C2 + 7, Note.Dynamic.FORTISSIMO.velocity, 3, 4);
 
-		MidiDevice device = MidiUtils.getMidiOutDevice();
+		MidiDevice device = MidiInterface.getMidiOutDevice();
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();
 		}
@@ -205,7 +230,7 @@ public class Sandbox {
 	}
 
 	static void playDrums() throws MidiUnavailableException, InvalidMidiDataException, InterruptedException {
-		MidiDevice device = MidiUtils.getMidiOutDevice();
+		MidiDevice device = MidiInterface.getMidiOutDevice();
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();
 		}
@@ -238,19 +263,6 @@ public class Sandbox {
 
 		} finally {
 			device.close();
-		}
-	}
-
-	static void listDevices() throws MidiUnavailableException {
-		for(MidiDevice.Info deviceInfo : MidiSystem.getMidiDeviceInfo()) {
-			String description = deviceInfo.getDescription();
-			String name = deviceInfo.getName();
-			String vendor = deviceInfo.getVendor();
-			String version = deviceInfo.getVersion();
-			MidiDevice device = MidiSystem.getMidiDevice(deviceInfo);
-
-			System.out.println(String.format("[%s] %s %s (%s) - %s", device.getClass().getName(), name, version, vendor, description));
-
 		}
 	}
 
