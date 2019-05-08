@@ -19,7 +19,7 @@ import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 
-public class MidiUtils {
+public class MidiInterface {
 
 	/**
 	 * Returns the first Midi Out device available. If no device is available, then returns null.
@@ -35,6 +35,32 @@ public class MidiUtils {
 			}
 		}
 		return null;
+	}
+
+	public static MidiDevice getMidiInDevice() throws MidiUnavailableException {
+		for(MidiDevice.Info deviceInfo : MidiSystem.getMidiDeviceInfo()) {
+			MidiDevice device = MidiSystem.getMidiDevice(deviceInfo);
+			if("MidiInDevice".equalsIgnoreCase(device.getClass().getSimpleName())) {
+				return device;
+			}
+		}
+		return null;
+	}
+
+	static void listDevices() throws MidiUnavailableException {
+		for(MidiDevice.Info deviceInfo : MidiSystem.getMidiDeviceInfo()) {
+			String description = deviceInfo.getDescription();
+			String name = deviceInfo.getName();
+			String vendor = deviceInfo.getVendor();
+			String version = deviceInfo.getVersion();
+			MidiDevice device = MidiSystem.getMidiDevice(deviceInfo);
+
+			System.out.println(String.format("[%s] %s %s (%s) - %s", device.getClass().getName(), name, version, vendor, description));
+		}
+	}
+
+	public static void main(String[] args) throws MidiUnavailableException {
+		listDevices();
 	}
 
 }
