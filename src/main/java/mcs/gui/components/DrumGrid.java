@@ -22,8 +22,8 @@ import java.util.Map;
 
 public class DrumGrid extends MGrid {
 
-	public DrumGrid(Time.TimeSignature timeSignature, int bars, Map<String, Integer> keyMapping) {
-		super(timeSignature, bars, keyMapping);
+	public DrumGrid(Time.TimeSignature timeSignature, int bars, int ticksPerBeat, Map<String, Integer> keyMapping) {
+		super(timeSignature, bars, ticksPerBeat, keyMapping);
 	}
 
 	public Block toBlock(int channel) {

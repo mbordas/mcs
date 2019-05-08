@@ -31,6 +31,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 
 public class MelodicPatternEditor {
 
@@ -48,7 +50,7 @@ public class MelodicPatternEditor {
 	ActionListener m_actionListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			if(e.getSource() == m_clearBtn) {
-				m_grid.clear();
+				m_grid.eraseAll();
 			} else if(e.getSource() == m_playBtn) {
 				play();
 			} else if(e.getSource() == m_stopBtn) {
@@ -57,11 +59,23 @@ public class MelodicPatternEditor {
 		}
 	};
 
-	public MelodicPatternEditor(MSequencer sequencer, int[] chord) {
+	public MelodicPatternEditor(MSequencer sequencer, int[] chord, MelodicPattern pattern) {
 		m_sequencer = sequencer;
 		m_chord = chord;
 
-		m_grid = new MelodicGrid(new Time.TimeSignature(4, 4), 1);
+		Time.TimeSignature timeSignature = MelodicPattern.DEFAULT_TIME_SIGNATURE;
+		int bars = 1;
+		int ticksPerBeat = 4;
+		if(pattern != null) {
+			timeSignature = pattern.getTimeSignature();
+			bars = pattern.getBars();
+			ticksPerBeat = pattern.getTicksPerBeat();
+		}
+
+		m_grid = new MelodicGrid(timeSignature, bars, ticksPerBeat);
+		if(pattern != null) {
+			m_grid.write(pattern);
+		}
 
 		m_grid.setRowClickListener(new MGrid.RowClickListener() {
 			@Override
@@ -92,6 +106,8 @@ public class MelodicPatternEditor {
 				}
 			}
 		});
+
+		System.out.println(m_grid.toPattern().getContent());
 	}
 
 	public void show() {
@@ -162,7 +178,15 @@ public class MelodicPatternEditor {
 		}
 	}
 
-	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException {
+	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, IOException {
+
+		// Loading pattern
+		MelodicPattern pattern = null;
+		if(args.length >= 1) {
+			File patternFile = new File(args[0]);
+			pattern = MelodicPattern.load(patternFile);
+		}
+
 		MidiDevice device = MidiInterface.getMidiOutDevice();
 
 		if(device == null) {
@@ -176,6 +200,6 @@ public class MelodicPatternEditor {
 
 		MSequencer sequencer = new MSequencer(receiver, 100);
 
-		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3)).show();
+		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3), pattern).show();
 	}
 }

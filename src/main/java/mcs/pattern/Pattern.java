@@ -31,11 +31,21 @@ public abstract class Pattern {
 
 	protected final Time.TimeSignature m_timeSignature;
 	protected final int m_ticksPerBeat;
+	protected int m_bars;
 	protected final Map<Long, List<Event>> m_tickEvents = new TreeMap<>();
 
 	protected Pattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
 		m_timeSignature = timeSignature;
 		m_ticksPerBeat = ticksPerBeat;
+		m_bars = 1;
+	}
+
+	public Time.TimeSignature getTimeSignature() {
+		return m_timeSignature;
+	}
+
+	public int getBars() {
+		return m_bars;
 	}
 
 	/**
@@ -47,10 +57,29 @@ public abstract class Pattern {
 	public void add(int level, int velocity, long tickStart, long tickStop) {
 		List<Event> tickEvents = getOrCreateEventList(tickStart);
 		tickEvents.add(new Event(new int[] { level }, velocity, tickStop - tickStart));
+
+		// Updating bars count if new event makes the Pattern longer
+		// Note tha bar index starts with 0, that's why we adds 1 to get the number of bars
+		// 'tickStop' is the tick at which the event stops, so we must remove 1 to get the last tick of the event
+		int _bars = computeBarIndex(tickStop - 1, m_ticksPerBeat, m_timeSignature.getBeatsInBar()) + 1;
+		m_bars = Math.max(m_bars, _bars);
 	}
 
+	public int getTicksPerBeat() {
+		return m_ticksPerBeat;
+	}
+
+	/**
+	 * Returns the size of {@link Pattern} in ticks.
+	 *
+	 * @return
+	 */
 	public long size() {
-		return m_timeSignature.getTicks(m_ticksPerBeat);
+		return m_timeSignature.getTicksInBar(m_ticksPerBeat) * m_bars;
+	}
+
+	public List<Event> getEvents(long tick) {
+		return getOrCreateEventList(tick);
 	}
 
 	private List<Event> getOrCreateEventList(long tick) {
@@ -60,6 +89,11 @@ public abstract class Pattern {
 			m_tickEvents.put(tick, result);
 		}
 		return result;
+	}
+
+	public static int computeBarIndex(long tick, long m_ticksPerBeat, int beatsInBar) {
+		int beats = (int) (tick / m_ticksPerBeat);
+		return beats / beatsInBar;
 	}
 
 	/**

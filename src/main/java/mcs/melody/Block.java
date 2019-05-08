@@ -45,7 +45,7 @@ public class Block {
 	}
 
 	public long size() {
-		return m_timeSignature.getTicks(m_ticksPerBeat);
+		return m_timeSignature.getTicksInBar(m_ticksPerBeat);
 	}
 
 	public long getDuration_ms(int tempo_bpm) {

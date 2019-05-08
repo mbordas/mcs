@@ -46,7 +46,7 @@ public class DrumPatternEditor {
 	public DrumPatternEditor(MSequencer sequencer) {
 		m_sequencer = sequencer;
 
-		m_grid = new DrumGrid(new Time.TimeSignature(4, 4), 1, Drum.getBasicKeyMapping());
+		m_grid = new DrumGrid(new Time.TimeSignature(4, 4), 1, 4, Drum.getBasicKeyMapping());
 
 		m_grid.setRowClickListener(new MGrid.RowClickListener() {
 			@Override
@@ -72,7 +72,7 @@ public class DrumPatternEditor {
 	ActionListener m_actionListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			if(e.getSource() == m_clearBtn) {
-				m_grid.clear();
+				m_grid.eraseAll();
 			} else if(e.getSource() == m_playBtn) {
 				play();
 			} else if(e.getSource() == m_stopBtn) {

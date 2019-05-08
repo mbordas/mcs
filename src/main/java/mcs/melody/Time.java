@@ -51,13 +51,22 @@ public class Time {
 			return m_beatsInBar;
 		}
 
+		public int getBeatDivision() {
+			return m_beatDivision;
+		}
+
 		/**
 		 * Returns the number of ticks in one bar.
 		 *
 		 * @return
 		 */
-		public int getTicks(int ticksPerBeat) {
+		public int getTicksInBar(int ticksPerBeat) {
 			return ticksPerBeat * m_beatsInBar;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%d/%d", m_beatsInBar, m_beatDivision);
 		}
 	}
 

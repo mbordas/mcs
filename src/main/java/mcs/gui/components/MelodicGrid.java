@@ -7,6 +7,7 @@
 package mcs.gui.components;
 
 import mcs.melody.Time;
+import mcs.pattern.Event;
 import mcs.pattern.MelodicPattern;
 
 import java.util.LinkedHashMap;
@@ -14,8 +15,26 @@ import java.util.Map;
 
 public class MelodicGrid extends MGrid {
 
-	public MelodicGrid(Time.TimeSignature timeSignature, int bars) {
-		super(timeSignature, bars, getKeyMapping());
+	public MelodicGrid(Time.TimeSignature timeSignature, int bars, int ticksPerBeat) {
+		super(timeSignature, bars, ticksPerBeat, getKeyMapping());
+	}
+
+	/**
+	 * Writes 'pattern' in this grid. It does not clear the grid before, if some cells are already written, then they will be
+	 * kept written (or overridden).
+	 *
+	 * @param pattern
+	 */
+	public void write(MelodicPattern pattern) {
+		// Writing events
+		for(long tick = 0; tick < pattern.size(); tick++) {
+			for(Event event : pattern.getEvents(tick)) {
+				write(tick, event);
+			}
+		}
+
+		// Updating display
+		repaint();
 	}
 
 	public MelodicPattern toPattern() {

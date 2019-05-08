@@ -25,12 +25,28 @@ import org.junit.Test;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class MelodicPatternTest {
+
+	@Test
+	public void load() throws IOException {
+		File inputFile = new File("target/test-classes/pattern/pattern_01.mpt");
+
+		MelodicPattern pattern = MelodicPattern.load(inputFile);
+
+		System.out.println(pattern.getContent());
+
+		assertEquals(1, pattern.getBars());
+		assertEquals(4, pattern.getTimeSignature().getBeatsInBar());
+		assertEquals(4, pattern.getTimeSignature().getBeatDivision());
+		assertEquals(16, pattern.getTicksPerBeat());
+	}
 
 	@Test
 	public void toBlock() throws InvalidMidiDataException {

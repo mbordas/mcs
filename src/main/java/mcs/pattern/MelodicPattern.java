@@ -32,6 +32,8 @@ import java.util.Map;
 
 public class MelodicPattern extends Pattern {
 
+	public static final Time.TimeSignature DEFAULT_TIME_SIGNATURE = new Time.TimeSignature(4, 4);
+
 	public MelodicPattern(Time.TimeSignature timeSignature, int ticksPerBeat) {
 		super(timeSignature, ticksPerBeat);
 	}
@@ -73,6 +75,57 @@ public class MelodicPattern extends Pattern {
 		}
 
 		return result.toString();
+	}
+
+	public static MelodicPattern load(File patternFile) throws IOException {
+
+		Time.TimeSignature timeSignature = DEFAULT_TIME_SIGNATURE;
+		int ticksPerBeat = 4;
+
+		// Reading options
+		for(String line : FileUtils.readLines(patternFile)) {
+			// Reading options
+			if(line.contains("=")) {
+				String[] words = line.split("=");
+				String name = words[0];
+				String valueStr = words[1];
+
+				if(Pattern.OPTION_TICKS_PER_BEAT.equalsIgnoreCase(name)) {
+					ticksPerBeat = Integer.valueOf(valueStr);
+				}
+			}
+		}
+
+		MelodicPattern result = new MelodicPattern(timeSignature, ticksPerBeat);
+
+		for(String line : FileUtils.readLines(patternFile)) {
+
+			if(line.length() > 0 && !line.startsWith("#") && !line.contains("=")) {
+
+				// Pattern
+				String[] words = line.split(";");
+				int octaveOffset = Integer.valueOf(words[0]); // Ignored
+				int tick = Integer.valueOf(words[2]);
+				int duration = Integer.valueOf(words[3]);
+				int velocity = Pattern.parseVelocity(words[4]);
+
+				if(words[1].contains(",")) {
+					for(String intervalStr : words[1].split(",")) {
+						int interval = Integer.valueOf(intervalStr);
+						if(interval != Note.NULL) {
+							result.add(interval, velocity, tick, tick + duration);
+						}
+					}
+				} else {
+					int interval = Integer.valueOf(words[1]);
+					if(interval != Note.NULL) {
+						result.add(interval, velocity, tick, tick + duration);
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	/**
