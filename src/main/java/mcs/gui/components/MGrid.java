@@ -118,11 +118,11 @@ public class MGrid extends JComponent {
 		return m_velocityMatrix[0].length;
 	}
 
-	protected void write(long tick, mcs.pattern.Event event) {
+	void write(long tick, mcs.pattern.Event event) {
 		int column = tickToColumn(tick);
 		for(int level : event.getLevels()) {
 			int row = levelToRow(level);
-			for(int c = 0; c < event.getDuration_ticks() - 1; c++) { // Last tick of event is the one before tickStop
+			for(int c = 0; c < event.getDuration_ticks(); c++) { // Last tick of event is the one before tickStop
 				write(column + c, row);
 			}
 		}
@@ -179,7 +179,7 @@ public class MGrid extends JComponent {
 	 * Computes row index in grid from {@link Pattern}'s level. Pattern's levels are free (stored in a local mapping),
 	 * 'row' starts with 0 and rows are going from top to bottom.
 	 *
-	 * @param level Starts with 1. Level #1 is display at bottom row.
+	 * @param level Starts with 1. Level #1 is display at top row.
 	 * @return
 	 */
 	private int levelToRow(int level) {
