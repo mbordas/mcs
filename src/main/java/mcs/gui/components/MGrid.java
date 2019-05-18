@@ -140,18 +140,17 @@ public class MGrid extends JComponent {
 		}
 	}
 
-	private boolean isInGrid(int columns, int row) {
-		if(columns < 0 || columns >= getMatrixWidth()) {
+	static boolean isInGrid(int columns, int row, int width, int height) {
+		if(columns < 0 || columns >= width) {
 			return false;
 		}
-		if(row < 0 || row >= getMatrixHeight()) {
+		if(row < 0 || row >= height) {
 			return false;
 		}
 		return true;
 	}
 
 	private void write(int column, int row) {
-		System.out.println("write " + column + "," + row);
 		m_velocityMatrix[column][row] = m_currentVelocity;
 	}
 
@@ -199,14 +198,14 @@ public class MGrid extends JComponent {
 	 * @param mouseX_px
 	 * @return
 	 */
-	private static int pixel2column(int mouseX_px) {
-		int xInGrid_px = mouseX_px - (ROW_LABEL_WIDTH_px + GRID_PADDING_px);
+	static int pixel2column(int mouseX_px, int rowLabelWidth_px, int cellWidth_px, int gridPadding_px) {
+		int xInGrid_px = mouseX_px - (rowLabelWidth_px + gridPadding_px);
 		if(xInGrid_px < 0) {
 			// Avoids dividing a negative but small number by CELL_WIDTH_px
 			// which could given result = 0, still in Grid.
 			return -1;
 		} else {
-			return xInGrid_px / CELL_WIDTH_px;
+			return xInGrid_px / cellWidth_px;
 		}
 	}
 
@@ -217,8 +216,8 @@ public class MGrid extends JComponent {
 	 * @param mouseY_px
 	 * @return
 	 */
-	private static int pixel2row(int mouseY_px) {
-		return (mouseY_px - GRID_PADDING_px) / CELL_HEIGHT_px;
+	static int pixel2row(int mouseY_px, int cellHeight_px, int gridPadding_px) {
+		return (mouseY_px - gridPadding_px) / cellHeight_px;
 	}
 
 	//
@@ -241,8 +240,8 @@ public class MGrid extends JComponent {
 
 				if(!onMouseAction(event)) {
 
-					int column = pixel2column(event.getX());
-					int row = pixel2row(event.getY());
+					int column = pixel2column(event.getX(), ROW_LABEL_WIDTH_px, CELL_WIDTH_px, GRID_PADDING_px);
+					int row = pixel2row(event.getY(), CELL_HEIGHT_px, GRID_PADDING_px);
 
 					if(column < 0 && m_rowClickListener != null) {
 						int i = 0;
@@ -260,8 +259,8 @@ public class MGrid extends JComponent {
 			public void mouseReleased(MouseEvent event) {
 				m_mode = EditionMode.MOVE;
 
-				int column = pixel2column(event.getX());
-				int row = pixel2row(event.getY());
+				int column = pixel2column(event.getX(), ROW_LABEL_WIDTH_px, CELL_WIDTH_px, GRID_PADDING_px);
+				int row = pixel2row(event.getY(), CELL_HEIGHT_px, GRID_PADDING_px);
 
 				if(column < 0 && m_rowClickListener != null) {
 					int i = 0;
@@ -289,10 +288,10 @@ public class MGrid extends JComponent {
 	 * @return If event has been processed. Returns false if event is ignored here.
 	 */
 	private boolean onMouseAction(MouseEvent event) {
-		int column = pixel2column(event.getX());
-		int row = pixel2row(event.getY());
+		int column = pixel2column(event.getX(), ROW_LABEL_WIDTH_px, CELL_WIDTH_px, GRID_PADDING_px);
+		int row = pixel2row(event.getY(), CELL_HEIGHT_px, GRID_PADDING_px);
 
-		if(isInGrid(column, row)) {
+		if(isInGrid(column, row, getMatrixWidth(), getMatrixHeight())) {
 			if(m_graphics2D != null) {
 				if(m_mode == EditionMode.MOVE) {
 					return true;
@@ -300,17 +299,11 @@ public class MGrid extends JComponent {
 
 				if(m_mode == EditionMode.WRITE) {
 					write(column, row);
-					m_graphics2D.setPaint(m_filledCellColor);
 				} else if(m_mode == EditionMode.ERASE) {
 					erase(column, row);
-					m_graphics2D.setPaint(m_emptyCellColor);
 				}
 
-				m_graphics2D.fillRect(ROW_LABEL_WIDTH_px + GRID_PADDING_px + column * CELL_WIDTH_px + CELL_PADDING_px,
-						GRID_PADDING_px + row * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
-						CELL_HEIGHT_px - 2 * CELL_PADDING_px);
-
-				repaint();
+				updateDisplay();
 			}
 
 			return true;
@@ -336,7 +329,7 @@ public class MGrid extends JComponent {
 		g.drawImage(m_image, 0, 0, null);
 	}
 
-	private void updateDisplay() {
+	protected void updateDisplay() {
 		if(m_graphics2D != null) {
 
 			// Clearing display
@@ -364,10 +357,24 @@ public class MGrid extends JComponent {
 				Rectangle2D labelMetrics = m_graphics2D.getFontMetrics().getStringBounds(label, m_graphics2D);
 				int marginBottom_px = (CELL_HEIGHT_px - (int) labelMetrics.getHeight()) / 2;
 				int y_px = GRID_PADDING_px + (row + 1) * CELL_HEIGHT_px - marginBottom_px;
-
 				int x_px = ROW_LABEL_WIDTH_px - (int) labelMetrics.getWidth();
 				m_graphics2D.drawString(label, x_px, y_px);
 				row++;
+			}
+
+			for(int x = 0; x < m_velocityMatrix.length; x++) {
+				for(int y = 0; y < m_velocityMatrix[x].length; y++) {
+					int velocity = m_velocityMatrix[x][y];
+					if(velocity > 0) {
+						m_graphics2D.setPaint(m_filledCellColor);
+					} else {
+						m_graphics2D.setPaint(m_emptyCellColor);
+					}
+
+					m_graphics2D.fillRect(ROW_LABEL_WIDTH_px + GRID_PADDING_px + x * CELL_WIDTH_px + CELL_PADDING_px,
+							GRID_PADDING_px + y * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
+							CELL_HEIGHT_px - 2 * CELL_PADDING_px);
+				}
 			}
 
 			repaint();

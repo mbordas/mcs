@@ -15,13 +15,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.pattern;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 public class Phrase {
+
+	public static final int DEFAULT_OCTAVE = 3;
 
 	public static class Instrument {
 		public String label;
@@ -34,11 +36,25 @@ public class Phrase {
 	}
 
 	Map<Integer, String> m_chords; // Stores chords ordered by bar index starting by 0.
-	Map<Instrument, Map<Integer, MelodicPattern>> m_melodicPatterns;
+	List<Instrument> m_instruments;
+	List<List<MelodicPattern>> m_melodicPatterns; // column, row
 
 	public Phrase() {
 		m_chords = new TreeMap<>();
-		m_melodicPatterns = new LinkedHashMap<>();
+		m_melodicPatterns = new ArrayList<>();
+		m_instruments = new ArrayList<>();
+	}
+
+	public void set(int row, int column, MelodicPattern pattern) {
+		List<MelodicPattern> patterns = m_melodicPatterns.get(row);
+
+		// Filling the list with 'null' values if column > size
+		for(int i = patterns.size(); i <= column; i++) {
+			patterns.add(null);
+		}
+
+		// Adding the new pattern
+		patterns.set(column, pattern);
 	}
 
 	public int getLength() {
@@ -54,18 +70,40 @@ public class Phrase {
 	}
 
 	public Map<Instrument, MelodicPattern> getMelodicPatterns(int index) {
-		Map<Instrument, MelodicPattern> result = new HashMap<>();
+		Map<Instrument, MelodicPattern> result = new LinkedHashMap<>();
+		for(int i = 0; i < m_instruments.size(); i++) {
+			Instrument instrument = m_instruments.get(i);
+			List<MelodicPattern> patterns = m_melodicPatterns.get(i);
+			result.put(instrument, patterns.get(index));
+		}
 		return result;
+	}
+
+	public MelodicPattern getMelodicPattern(int row, int column) {
+		Instrument instrument = getInstrument(row);
+		if(instrument == null) {
+			return null;
+		}
+		List<MelodicPattern> instrumentPatterns = m_melodicPatterns.get(row);
+		if(column > instrumentPatterns.size() - 1) {
+			return null;
+		}
+		return instrumentPatterns.get(column);
 	}
 
 	public Instrument addInstrument(String label, int channel) {
 		Instrument result = new Instrument(label, channel);
-		m_melodicPatterns.put(result, new TreeMap<Integer, MelodicPattern>());
+		m_instruments.add(result);
+		m_melodicPatterns.add(new ArrayList<MelodicPattern>());
 		return result;
 	}
 
-	public Set<Instrument> getInstruments() {
-		return m_melodicPatterns.keySet();
+	public Instrument getInstrument(int row) {
+		return m_instruments.get(row);
+	}
+
+	public List<Instrument> getInstruments() {
+		return m_instruments;
 	}
 
 	public void setChord(int index, String name) {

@@ -6,19 +6,25 @@
 
 package mcs.gui.components;
 
+import mcs.MSequencer;
+import mcs.gui.MelodicPatternEditor;
 import mcs.gui.UIUtils;
+import mcs.melody.Chord;
+import mcs.melody.Note;
+import mcs.pattern.MelodicPattern;
 import mcs.pattern.Phrase;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class PhraseGrid extends JComponent {
+public class PhraseGrid extends JComponent implements ClosedComponentListener {
 
 	public static final int CELL_WIDTH_px = 80;
 	public static final int CHORD_CELL_HEIGHT_px = 70;
 	public static final int PATTERN_CELL_HEIGHT_px = 50;
 	public static final int GRID_PADDING_px = 10;
-	public static final int CELL_PADDING_px = 2;
 	public static final int ROW_LABEL_WIDTH_px = 200;
 
 	public static final int LABEL_RIGHT_PADDING_px = 10;
@@ -28,10 +34,19 @@ public class PhraseGrid extends JComponent {
 	private Graphics2D m_graphics2D;
 
 	// Music
-	private Phrase m_phrase;
+	private final Phrase m_phrase;
+	private final MSequencer m_sequencer;
 
-	public PhraseGrid(Phrase phrase) {
+	// Editors
+	private MelodicPatternEditor m_melodicPatternEditor;
+	private int m_editingColumn = -1;
+	private int m_editingRow = -1;
+
+	public PhraseGrid(Phrase phrase, MSequencer sequencer) {
 		m_phrase = phrase;
+		m_sequencer = sequencer;
+
+		addMouseListener(buildMouseListener());
 
 		setSize(getSize());
 		setPreferredSize(getSize());
@@ -76,6 +91,82 @@ public class PhraseGrid extends JComponent {
 		repaint();
 	}
 
+	/**
+	 * Shows up the {@link MelodicPatternEditor}'s window on the selected {@link MelodicPattern}.
+	 *
+	 * @param column The column index in the phrase's grid.
+	 * @param row    The row index of the melodic instrument in the phrase's grid.
+	 */
+	private void openMelodicEditor(int column, int row) {
+		m_editingColumn = column;
+		m_editingRow = row;
+
+		int[] chord = Chord.byName(m_phrase.getChord(column), Phrase.DEFAULT_OCTAVE);
+		MelodicPattern pattern = m_phrase.getMelodicPattern(row, column);
+		if(pattern == null) {
+			pattern = new MelodicPattern(MelodicPattern.DEFAULT_TIME_SIGNATURE, 4);
+			m_phrase.set(row, column, pattern);
+		}
+
+		if(m_melodicPatternEditor == null) {
+			m_melodicPatternEditor = new MelodicPatternEditor(m_sequencer, chord, pattern);
+			m_melodicPatternEditor.setClosedComponentListener(this);
+		}
+		m_melodicPatternEditor.set(chord, pattern);
+		m_melodicPatternEditor.show(false);
+	}
+
+	@Override
+	/**
+	 * This method is called when the {@link MelodicPatternEditor} is closed (window is only hidden).
+	 */
+	public void onClosed(Object component) {
+		MelodicPattern pattern = m_melodicPatternEditor.toPattern();
+		System.out.println("Saving pattern:" + pattern.toBlock(0, Chord.K(Note.C2)));
+		m_phrase.set(m_editingRow, m_editingColumn, pattern);
+	}
+
+	//
+	// Mouse management
+	//
+
+	private MouseListener buildMouseListener() {
+		return new MouseListener() {
+
+			@Override
+			public void mouseClicked(MouseEvent event) {
+				int column = MGrid.pixel2column(event.getX(), ROW_LABEL_WIDTH_px, CELL_WIDTH_px, GRID_PADDING_px);
+
+				// The height of chords cell must be removed
+				int row = MGrid.pixel2row(event.getY() - CHORD_CELL_HEIGHT_px, PATTERN_CELL_HEIGHT_px, GRID_PADDING_px);
+
+				if(MGrid.isInGrid(column, row, m_phrase.getLength(), m_phrase.getInstruments().size())) {
+					openMelodicEditor(column, row);
+				}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent mouseEvent) {
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent mouseEvent) {
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent) {
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent) {
+
+			}
+		};
+	}
+
 	protected void paintComponent(Graphics g) {
 		if(m_image == null) {
 			m_image = createImage(getSize().width, getSize().height);
@@ -87,4 +178,5 @@ public class PhraseGrid extends JComponent {
 
 		g.drawImage(m_image, 0, 0, null);
 	}
+
 }

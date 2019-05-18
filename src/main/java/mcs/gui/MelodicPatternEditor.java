@@ -8,6 +8,7 @@ package mcs.gui;
 
 import mcs.MSequencer;
 import mcs.devices.Roland_FP30;
+import mcs.gui.components.ClosedComponentListener;
 import mcs.gui.components.MButton;
 import mcs.gui.components.MGrid;
 import mcs.gui.components.MelodicGrid;
@@ -31,21 +32,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 
-public class MelodicPatternEditor {
+public class MelodicPatternEditor implements WindowListener {
 
 	public static final int CHANNEL = 0;
 	public static final int OCTAVE = 3;
 
 	JButton m_clearBtn, m_playBtn, m_stopBtn;
+	ClosedComponentListener m_closedComponentListener;
 
 	MelodicGrid m_grid;
 
 	MSequencer m_sequencer;
 
-	final int[] m_chord;
+	int[] m_chord;
 
 	ActionListener m_actionListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -110,9 +114,42 @@ public class MelodicPatternEditor {
 		System.out.println(m_grid.toPattern().getContent());
 	}
 
-	public void show() {
+	public void setClosedComponentListener(ClosedComponentListener listener) {
+		m_closedComponentListener = listener;
+	}
+
+	/**
+	 * Changes the chord used for 'play'. Pattern is written but not linked to this editor, it will not be modified.
+	 *
+	 * @param chord
+	 * @param pattern
+	 */
+	public void set(int[] chord, MelodicPattern pattern) {
+		m_chord = chord;
+		m_grid.eraseAll();
+		m_grid.write(pattern);
+
+		System.out.println("Set pattern:\n" + pattern.getContent());
+	}
+
+	/**
+	 * Builds a {@link MelodicPattern} from written grid.
+	 *
+	 * @return
+	 */
+	public MelodicPattern toPattern() {
+		return m_grid.toPattern();
+	}
+
+	/**
+	 * Shows up this editor's window.
+	 *
+	 * @param exitOnClose If 'true', then the program will exit. If 'false', then the window will only be hidden.
+	 */
+	public void show(boolean exitOnClose) {
 		// create main frame
 		JFrame frame = new JFrame("Melodic Pattern Editor");
+		frame.addWindowListener(this);
 		Container content = frame.getContentPane();
 		// set layout on content pane
 		content.setLayout(new BorderLayout());
@@ -139,12 +176,18 @@ public class MelodicPatternEditor {
 		content.add(controls, BorderLayout.NORTH);
 
 		frame.pack();
-		// can close frame
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		if(exitOnClose) {
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		} else {
+			frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		}
 		// show the swing paint result
 		frame.setVisible(true);
 	}
 
+	/**
+	 * Uses its {@link MSequencer} and m'chord' to play the current written pattern.
+	 */
 	void play() {
 		try {
 			MelodicPattern melodicPattern = m_grid.toPattern();
@@ -170,6 +213,9 @@ public class MelodicPatternEditor {
 		}
 	}
 
+	/**
+	 * Stops the {@link MSequencer} playback.
+	 */
 	void stop() {
 		try {
 			m_sequencer.stop();
@@ -178,6 +224,14 @@ public class MelodicPatternEditor {
 		}
 	}
 
+	/**
+	 * Runs a standalone editor.
+	 *
+	 * @param args
+	 * @throws MidiUnavailableException
+	 * @throws InvalidMidiDataException
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, IOException {
 
 		// Loading pattern
@@ -200,6 +254,40 @@ public class MelodicPatternEditor {
 
 		MSequencer sequencer = new MSequencer(receiver, 100);
 
-		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3), pattern).show();
+		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3), pattern).show(true);
+	}
+
+	@Override
+	public void windowOpened(WindowEvent windowEvent) {
+	}
+
+	@Override
+	public void windowClosing(WindowEvent windowEvent) {
+	}
+
+	@Override
+	public void windowClosed(WindowEvent windowEvent) {
+	}
+
+	@Override
+	public void windowIconified(WindowEvent windowEvent) {
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent windowEvent) {
+	}
+
+	@Override
+	public void windowActivated(WindowEvent windowEvent) {
+	}
+
+	@Override
+	/**
+	 * This method is called when the window is closed using the cross.
+	 */
+	public void windowDeactivated(WindowEvent windowEvent) {
+		if(m_closedComponentListener != null) {
+			m_closedComponentListener.onClosed(this);
+		}
 	}
 }

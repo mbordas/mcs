@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class UIUtils {
 
-	public static boolean DEBUG = false;
+	public static boolean DEBUG_ENABLED = false;
 
 	public static void setDefaultSize(int size) {
 		Set<Object> keySet = UIManager.getLookAndFeelDefaults().keySet();
@@ -69,7 +69,7 @@ public class UIUtils {
 
 		Color previousColor = graphics.getColor();
 
-		if(DEBUG) {
+		if(DEBUG_ENABLED) {
 			graphics.setColor(Color.GREEN);
 			graphics.drawRect(ax_px, ay_px, width_px, height_px);
 			graphics.setColor(previousColor);

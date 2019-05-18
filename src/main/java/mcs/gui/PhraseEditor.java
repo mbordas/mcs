@@ -69,7 +69,7 @@ public class PhraseEditor {
 
 		content.add(controls, BorderLayout.NORTH);
 
-		m_grid = new PhraseGrid(m_phrase);
+		m_grid = new PhraseGrid(m_phrase, m_sequencer);
 		content.add(m_grid, BorderLayout.CENTER);
 
 		frame.pack();
@@ -85,6 +85,7 @@ public class PhraseEditor {
 			for(Map.Entry<Phrase.Instrument, MelodicPattern> entry : m_phrase.getMelodicPatterns(c).entrySet()) {
 				int channel = entry.getKey().channel;
 				MelodicPattern pattern = entry.getValue();
+
 				Block block = pattern.toBlock(channel, chord);
 			}
 		}
@@ -95,11 +96,11 @@ public class PhraseEditor {
 		phrase.setChord(0, "E7");
 		phrase.setChord(1, "A7");
 		phrase.setChord(2, "E7");
-		phrase.setChord(3, "%");
+		phrase.setChord(3, "E7");
 
 		phrase.addInstrument("Piano", 0);
 
-		UIUtils.DEBUG = false;
+		UIUtils.DEBUG_ENABLED = false;
 
 		MidiDevice device = MidiInterface.getMidiOutDevice();
 

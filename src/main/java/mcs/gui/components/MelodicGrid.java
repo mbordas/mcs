@@ -34,7 +34,7 @@ public class MelodicGrid extends MGrid {
 		}
 
 		// Updating display
-		repaint();
+		updateDisplay();
 	}
 
 	public MelodicPattern toPattern() {
