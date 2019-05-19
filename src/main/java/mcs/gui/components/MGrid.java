@@ -298,7 +298,8 @@ public class MGrid extends JComponent {
 				erase(column, row);
 			}
 
-			updateDisplay();
+			// We only update the display of the cell
+			updateDisplay(column, row);
 
 			return true;
 		} else {
@@ -315,6 +316,23 @@ public class MGrid extends JComponent {
 			@Override
 			public void run() {
 				repaint();
+			}
+		});
+	}
+
+	/**
+	 * This method repaints only the area of cell given by 'column' and 'row'.
+	 *
+	 * @param column
+	 * @param row
+	 */
+	private void updateDisplay(final int column, final int row) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				repaint(ROW_LABEL_WIDTH_px + GRID_PADDING_px + column * CELL_WIDTH_px + CELL_PADDING_px,
+						GRID_PADDING_px + row * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
+						CELL_HEIGHT_px - 2 * CELL_PADDING_px);
 			}
 		});
 	}
