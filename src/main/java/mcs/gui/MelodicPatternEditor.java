@@ -40,8 +40,8 @@ import java.io.IOException;
 public class MelodicPatternEditor implements WindowListener {
 
 	public static final int CHANNEL = 0;
-	public static final int OCTAVE = 3;
 
+	JFrame m_frame;
 	JButton m_clearBtn, m_playBtn, m_stopBtn;
 	ClosedComponentListener m_closedComponentListener;
 
@@ -111,11 +111,7 @@ public class MelodicPatternEditor implements WindowListener {
 			}
 		});
 
-		System.out.println(m_grid.toPattern().getContent());
-	}
-
-	public void setClosedComponentListener(ClosedComponentListener listener) {
-		m_closedComponentListener = listener;
+		buildFrame();
 	}
 
 	/**
@@ -139,50 +135,6 @@ public class MelodicPatternEditor implements WindowListener {
 	 */
 	public MelodicPattern toPattern() {
 		return m_grid.toPattern();
-	}
-
-	/**
-	 * Shows up this editor's window.
-	 *
-	 * @param exitOnClose If 'true', then the program will exit. If 'false', then the window will only be hidden.
-	 */
-	public void show(boolean exitOnClose) {
-		// create main frame
-		JFrame frame = new JFrame("Melodic Pattern Editor");
-		frame.addWindowListener(this);
-		Container content = frame.getContentPane();
-		// set layout on content pane
-		content.setLayout(new BorderLayout());
-
-		// add to content pane
-		content.add(m_grid, BorderLayout.CENTER);
-
-		// create controls to apply colors and call clear feature
-		JPanel controls = new JPanel();
-
-		m_clearBtn = new MButton("Clear");
-		m_clearBtn.addActionListener(m_actionListener);
-		m_playBtn = new MButton("Play");
-		m_playBtn.addActionListener(m_actionListener);
-		m_stopBtn = new MButton("Stop");
-		m_stopBtn.addActionListener(m_actionListener);
-
-		// add to panel
-		controls.add(m_clearBtn);
-		controls.add(m_playBtn);
-		controls.add(m_stopBtn);
-
-		// add to content pane
-		content.add(controls, BorderLayout.NORTH);
-
-		frame.pack();
-		if(exitOnClose) {
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		} else {
-			frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		}
-		// show the swing paint result
-		frame.setVisible(true);
 	}
 
 	/**
@@ -224,37 +176,60 @@ public class MelodicPatternEditor implements WindowListener {
 		}
 	}
 
+	//
+	// UI
+	//
+
 	/**
-	 * Runs a standalone editor.
+	 * Shows up this editor's window.
 	 *
-	 * @param args
-	 * @throws MidiUnavailableException
-	 * @throws InvalidMidiDataException
-	 * @throws IOException
+	 * @param exitOnClose If 'true', then the program will exit. If 'false', then the window will only be hidden.
 	 */
-	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, IOException {
-
-		// Loading pattern
-		MelodicPattern pattern = null;
-		if(args.length >= 1) {
-			File patternFile = new File(args[0]);
-			pattern = MelodicPattern.load(patternFile);
+	public void show(boolean exitOnClose) {
+		if(exitOnClose) {
+			m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		} else {
+			m_frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		}
 
-		MidiDevice device = MidiInterface.getMidiOutDevice();
+		// show the swing paint result
+		m_frame.setVisible(true);
+	}
 
-		if(device == null) {
-			device = MidiSystem.getSynthesizer();
-		}
+	public void setClosedComponentListener(ClosedComponentListener listener) {
+		m_closedComponentListener = listener;
+	}
 
-		device.open();
-		Receiver receiver = device.getReceiver();
+	private void buildFrame() {
+		// create main frame
+		m_frame = new JFrame("Melodic Pattern Editor");
+		m_frame.addWindowListener(this);
+		Container content = m_frame.getContentPane();
+		// set layout on content pane
+		content.setLayout(new BorderLayout());
 
-		Tone.selectInstrument(receiver, CHANNEL, Roland_FP30.GRAND_PIANO_1);
+		// add to content pane
+		content.add(m_grid, BorderLayout.CENTER);
 
-		MSequencer sequencer = new MSequencer(receiver, 100);
+		// create controls to apply colors and call clear feature
+		JPanel controls = new JPanel();
 
-		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3), pattern).show(true);
+		m_clearBtn = new MButton("Clear");
+		m_clearBtn.addActionListener(m_actionListener);
+		m_playBtn = new MButton("Play");
+		m_playBtn.addActionListener(m_actionListener);
+		m_stopBtn = new MButton("Stop");
+		m_stopBtn.addActionListener(m_actionListener);
+
+		// add to panel
+		controls.add(m_clearBtn);
+		controls.add(m_playBtn);
+		controls.add(m_stopBtn);
+
+		// add to content pane
+		content.add(controls, BorderLayout.NORTH);
+
+		m_frame.pack();
 	}
 
 	@Override
@@ -289,5 +264,42 @@ public class MelodicPatternEditor implements WindowListener {
 		if(m_closedComponentListener != null) {
 			m_closedComponentListener.onClosed(this);
 		}
+	}
+
+	//
+	// Stand alone launcher
+	//
+
+	/**
+	 * Runs a standalone editor.
+	 *
+	 * @param args
+	 * @throws MidiUnavailableException
+	 * @throws InvalidMidiDataException
+	 * @throws IOException
+	 */
+	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, IOException {
+
+		// Loading pattern
+		MelodicPattern pattern = null;
+		if(args.length >= 1) {
+			File patternFile = new File(args[0]);
+			pattern = MelodicPattern.load(patternFile);
+		}
+
+		MidiDevice device = MidiInterface.getMidiOutDevice();
+
+		if(device == null) {
+			device = MidiSystem.getSynthesizer();
+		}
+
+		device.open();
+		Receiver receiver = device.getReceiver();
+
+		Tone.selectInstrument(receiver, CHANNEL, Roland_FP30.GRAND_PIANO_1);
+
+		MSequencer sequencer = new MSequencer(receiver, 100);
+
+		new MelodicPatternEditor(sequencer, Chord.Km(Note.A3), pattern).show(true);
 	}
 }
