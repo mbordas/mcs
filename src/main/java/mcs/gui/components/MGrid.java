@@ -40,10 +40,6 @@ public class MGrid extends JComponent {
 	int m_ticksPerBeat;
 	EditionMode m_mode = EditionMode.MOVE;
 
-	// Graphic
-	private Image m_image;
-	private Graphics2D m_graphics2D;
-
 	// Pattern
 	Time.TimeSignature m_timeSignature;
 	Map<String, Integer> m_levelMapping;
@@ -72,8 +68,6 @@ public class MGrid extends JComponent {
 		m_levelMapping = levelMapping;
 
 		initMatrix(timeSignature, bars);
-
-		setDoubleBuffered(false);
 
 		addMouseListener(buildMouseListener());
 		addMouseMotionListener(new MouseMotionAdapter() {
@@ -138,6 +132,8 @@ public class MGrid extends JComponent {
 				m_velocityMatrix[x][y] = 0;
 			}
 		}
+
+		updateDisplay();
 	}
 
 	static boolean isInGrid(int columns, int row, int width, int height) {
@@ -292,19 +288,17 @@ public class MGrid extends JComponent {
 		int row = pixel2row(event.getY(), CELL_HEIGHT_px, GRID_PADDING_px);
 
 		if(isInGrid(column, row, getMatrixWidth(), getMatrixHeight())) {
-			if(m_graphics2D != null) {
-				if(m_mode == EditionMode.MOVE) {
-					return true;
-				}
-
-				if(m_mode == EditionMode.WRITE) {
-					write(column, row);
-				} else if(m_mode == EditionMode.ERASE) {
-					erase(column, row);
-				}
-
-				updateDisplay();
+			if(m_mode == EditionMode.MOVE) {
+				return true;
 			}
+
+			if(m_mode == EditionMode.WRITE) {
+				write(column, row);
+			} else if(m_mode == EditionMode.ERASE) {
+				erase(column, row);
+			}
+
+			updateDisplay();
 
 			return true;
 		} else {
@@ -313,71 +307,69 @@ public class MGrid extends JComponent {
 	}
 
 	//
-	// Swing UI
+	// Custom graphics
 	//
 
-	protected void paintComponent(Graphics g) {
-		if(m_image == null) {
-			m_image = createImage(getSize().width, getSize().height);
-			m_graphics2D = (Graphics2D) m_image.getGraphics();
-			// Enable antialiasing
-			m_graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-			updateDisplay();
-		}
-
-		g.drawImage(m_image, 0, 0, null);
+	protected void updateDisplay() {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				repaint();
+			}
+		});
 	}
 
-	protected void updateDisplay() {
-		if(m_graphics2D != null) {
+	@Override
+	protected void paintComponent(Graphics graphics) {
+		super.paintComponent(graphics);
 
-			// Clearing display
-			m_graphics2D.setPaint(BACKGROUND_COLOR);
-			m_graphics2D.fillRect(0, 0, getSize().width, getSize().height);
+		Graphics2D graphics2d = (Graphics2D) graphics;
 
-			m_graphics2D.setColor(m_emptyCellColor);
-			for(int x = 0; x < getMatrixWidth(); x++) {
-				for(int y = 0; y < getMatrixHeight(); y++) {
-					int velocity = m_velocityMatrix[x][y];
-					if(velocity > 0) {
-						m_graphics2D.setPaint(m_filledCellColor);
-					} else {
-						m_graphics2D.setPaint(m_emptyCellColor);
-					}
-					m_graphics2D.fillRect(ROW_LABEL_WIDTH_px + GRID_PADDING_px + x * CELL_WIDTH_px + CELL_PADDING_px,
-							GRID_PADDING_px + y * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
-							CELL_HEIGHT_px - 2 * CELL_PADDING_px);
+		graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// Clearing display
+		graphics2d.setPaint(BACKGROUND_COLOR);
+		graphics2d.fillRect(0, 0, getSize().width, getSize().height);
+
+		graphics2d.setColor(m_emptyCellColor);
+		for(int x = 0; x < getMatrixWidth(); x++) {
+			for(int y = 0; y < getMatrixHeight(); y++) {
+				int velocity = m_velocityMatrix[x][y];
+				if(velocity > 0) {
+					graphics2d.setPaint(m_filledCellColor);
+				} else {
+					graphics2d.setPaint(m_emptyCellColor);
 				}
+				graphics2d.fillRect(ROW_LABEL_WIDTH_px + GRID_PADDING_px + x * CELL_WIDTH_px + CELL_PADDING_px,
+						GRID_PADDING_px + y * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
+						CELL_HEIGHT_px - 2 * CELL_PADDING_px);
 			}
+		}
 
-			m_graphics2D.setColor(LABEL_COLOR);
-			int row = 0;
-			for(String label : m_levelMapping.keySet()) {
-				Rectangle2D labelMetrics = m_graphics2D.getFontMetrics().getStringBounds(label, m_graphics2D);
-				int marginBottom_px = (CELL_HEIGHT_px - (int) labelMetrics.getHeight()) / 2;
-				int y_px = GRID_PADDING_px + (row + 1) * CELL_HEIGHT_px - marginBottom_px;
-				int x_px = ROW_LABEL_WIDTH_px - (int) labelMetrics.getWidth();
-				m_graphics2D.drawString(label, x_px, y_px);
-				row++;
-			}
+		graphics2d.setColor(LABEL_COLOR);
+		int row = 0;
+		for(String label : m_levelMapping.keySet()) {
+			Rectangle2D labelMetrics = graphics2d.getFontMetrics().getStringBounds(label, graphics2d);
+			int marginBottom_px = (CELL_HEIGHT_px - (int) labelMetrics.getHeight()) / 2;
+			int y_px = GRID_PADDING_px + (row + 1) * CELL_HEIGHT_px - marginBottom_px;
+			int x_px = ROW_LABEL_WIDTH_px - (int) labelMetrics.getWidth();
+			graphics2d.drawString(label, x_px, y_px);
+			row++;
+		}
 
-			for(int x = 0; x < m_velocityMatrix.length; x++) {
-				for(int y = 0; y < m_velocityMatrix[x].length; y++) {
-					int velocity = m_velocityMatrix[x][y];
-					if(velocity > 0) {
-						m_graphics2D.setPaint(m_filledCellColor);
-					} else {
-						m_graphics2D.setPaint(m_emptyCellColor);
-					}
-
-					m_graphics2D.fillRect(ROW_LABEL_WIDTH_px + GRID_PADDING_px + x * CELL_WIDTH_px + CELL_PADDING_px,
-							GRID_PADDING_px + y * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
-							CELL_HEIGHT_px - 2 * CELL_PADDING_px);
+		for(int x = 0; x < m_velocityMatrix.length; x++) {
+			for(int y = 0; y < m_velocityMatrix[x].length; y++) {
+				int velocity = m_velocityMatrix[x][y];
+				if(velocity > 0) {
+					graphics2d.setPaint(m_filledCellColor);
+				} else {
+					graphics2d.setPaint(m_emptyCellColor);
 				}
-			}
 
-			repaint();
+				graphics2d.fillRect(ROW_LABEL_WIDTH_px + GRID_PADDING_px + x * CELL_WIDTH_px + CELL_PADDING_px,
+						GRID_PADDING_px + y * CELL_HEIGHT_px + CELL_PADDING_px, CELL_WIDTH_px - 2 * CELL_PADDING_px,
+						CELL_HEIGHT_px - 2 * CELL_PADDING_px);
+			}
 		}
 	}
 
