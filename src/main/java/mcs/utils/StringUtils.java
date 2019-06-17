@@ -20,6 +20,11 @@ import java.util.regex.Pattern;
 
 public class StringUtils {
 
+	public static final String UTF8 = "UTF-8";
+	public static final String ANSI = "ISO-8859-1";
+	public static final String UNICODE = "UNICODE";
+	public static final String DEFAULT_ENCODING = UTF8;
+
 	public static String getGroup(String input, String regex, int groupIndex) {
 		String result = null;
 		Pattern pattern = Pattern.compile(regex);
