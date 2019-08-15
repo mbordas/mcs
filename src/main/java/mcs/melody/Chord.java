@@ -26,6 +26,7 @@ public class Chord {
 
 	// Intervals 'size' in semi-tones
 
+	public static final int ROOT = 0;
 	public static final int MINOR_SECOND = 1;
 	public static final int MAJOR_SECOND = 2;
 	public static final int MINOR_THIRD = 3;

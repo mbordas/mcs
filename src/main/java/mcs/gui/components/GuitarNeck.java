@@ -6,6 +6,9 @@
 
 package mcs.gui.components;
 
+import mcs.melody.Chord;
+import mcs.pattern.GuitarPattern;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -14,18 +17,24 @@ public class GuitarNeck extends JComponent {
 	public static Color FRETS_COLOR = Color.lightGray;
 	public static Color STRINGS_COLOR = Color.gray;
 	public static Color MARKERS_COLOR = Color.darkGray;
+	public static Color FINGER_COLOR = Color.orange;
 	public static Color FRETBOARD_COLOR = Color.black;
 
 	public static final int CELL_WIDTH_px = 46;
 	public static final int CELL_HEIGHT_px = 24;
 	public static final int GRID_PADDING_px = 10;
 
+	public static final int FINGER_RADIUS_px = 18;
+	public static final int FINGER_STROKE_px = 4;
 	public static final int FRET_THICKNESS_px = 2;
 	public static final int STRING_THICKNESS_px = 2;
 	public static final int MARKER_RADIUS_px = 14;
 	public static final int DEFAULT_FRETS_NUMBER = 21;
 
 	int m_frets = DEFAULT_FRETS_NUMBER;
+
+	GuitarPattern m_pattern;
+	int m_patternAnchorCell = 1;
 
 	public GuitarNeck(int frets) {
 
@@ -36,6 +45,12 @@ public class GuitarNeck extends JComponent {
 
 		setSize(width_px, height_px);
 		setPreferredSize(new Dimension(width_px, height_px));
+	}
+
+	public void set(GuitarPattern pattern, int cell) {
+		m_pattern = pattern;
+		m_patternAnchorCell = cell;
+		updateDisplay();
 	}
 
 	protected void updateDisplay() {
@@ -101,6 +116,35 @@ public class GuitarNeck extends JComponent {
 			}
 		}
 
+		if(m_pattern != null) {
+			graphics2d.setPaint(FINGER_COLOR);
+			Stroke stroke = graphics2d.getStroke();
+			graphics2d.setStroke(new BasicStroke(FINGER_STROKE_px));
+
+			int rootRadius = FINGER_RADIUS_px; // Radius used to fill circle
+			// radius used to draw circle, it takes finger stroke into account
+			int nonRootRadius_px = FINGER_RADIUS_px - FINGER_STROKE_px / 2;
+
+			// Looping over the strings. Low E=0, A=1... high E=5
+			for(int string = 0; string < 6; string++) {
+				GuitarPattern.StringFingering fingering = m_pattern.getFingerings(string);
+
+				int cell = m_patternAnchorCell + fingering.getAbscissa();
+
+				int x_px = GRID_PADDING_px + cell * CELL_WIDTH_px - CELL_WIDTH_px / 2;
+				int y_px = GRID_PADDING_px + (6 - string) * CELL_HEIGHT_px - CELL_HEIGHT_px / 2;
+
+				if(fingering.getInterval() != Chord.ROOT) {
+					graphics.fillOval(x_px - rootRadius / 2, y_px - rootRadius / 2, rootRadius, rootRadius);
+				} else {
+					graphics.drawOval(x_px - nonRootRadius_px / 2, y_px - nonRootRadius_px / 2, nonRootRadius_px, nonRootRadius_px);
+
+				}
+			}
+
+			graphics2d.setStroke(stroke);
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -120,5 +164,17 @@ public class GuitarNeck extends JComponent {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// show the swing paint result
 		frame.setVisible(true);
+
+		// Drawing a chord pattern
+		GuitarPattern lowMajor = new GuitarPattern();
+		lowMajor.set(5, Chord.ROOT, 0, 1);
+		lowMajor.set(4, Chord.PERFECT_FIFTH, 0, 1);
+		lowMajor.set(3, Chord.MAJOR_THIRD, 1, 1);
+		lowMajor.set(2, Chord.ROOT, 2, 1);
+		lowMajor.set(1, Chord.PERFECT_FIFTH, 2, 1);
+		lowMajor.set(0, Chord.ROOT, 0, 1);
+
+		m_neck.set(lowMajor, 3);
 	}
+
 }
