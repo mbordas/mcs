@@ -15,10 +15,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.utils;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +42,21 @@ public class FileUtils {
 		}
 
 		return lines;
+	}
+
+	public static void writeToFile(String content, File file, String encoding, boolean append) throws IOException {
+		writeContent(content, new BufferedOutputStream(new FileOutputStream(file, append)), encoding);
+	}
+
+	public static void writeContent(String content, OutputStream outputStream, String encoding) throws IOException {
+		try {
+			byte[] body = content.getBytes(encoding);
+			outputStream.write(body);
+		} finally {
+			if(outputStream != null) {
+				outputStream.close();
+			}
+		}
 	}
 
 	public static void log(String format, Object... args) {

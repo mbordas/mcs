@@ -11,6 +11,8 @@ import mcs.pattern.GuitarPattern;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 
 public class GuitarNeck extends JComponent {
 
@@ -20,7 +22,7 @@ public class GuitarNeck extends JComponent {
 	public static Color FINGER_COLOR = Color.orange;
 	public static Color FRETBOARD_COLOR = Color.black;
 
-	public static final int CELL_WIDTH_px = 46;
+	public static final int CELL_WIDTH_px = 64;
 	public static final int CELL_HEIGHT_px = 24;
 	public static final int GRID_PADDING_px = 10;
 
@@ -127,7 +129,7 @@ public class GuitarNeck extends JComponent {
 
 			// Looping over the strings. Low E=0, A=1... high E=5
 			for(int string = 0; string < 6; string++) {
-				GuitarPattern.StringFingering fingering = m_pattern.getFingerings(string);
+				GuitarPattern.StringFingering fingering = m_pattern.getFingering(string);
 
 				int cell = m_patternAnchorCell + fingering.getAbscissa();
 
@@ -135,10 +137,9 @@ public class GuitarNeck extends JComponent {
 				int y_px = GRID_PADDING_px + (6 - string) * CELL_HEIGHT_px - CELL_HEIGHT_px / 2;
 
 				if(fingering.getInterval() != Chord.ROOT) {
-					graphics.fillOval(x_px - rootRadius / 2, y_px - rootRadius / 2, rootRadius, rootRadius);
-				} else {
 					graphics.drawOval(x_px - nonRootRadius_px / 2, y_px - nonRootRadius_px / 2, nonRootRadius_px, nonRootRadius_px);
-
+				} else {
+					graphics.fillOval(x_px - rootRadius / 2, y_px - rootRadius / 2, rootRadius, rootRadius);
 				}
 			}
 
@@ -147,8 +148,8 @@ public class GuitarNeck extends JComponent {
 
 	}
 
-	public static void main(String[] args) {
-		GuitarNeck m_neck = new GuitarNeck(24);
+	public static void main(String[] args) throws IOException {
+		GuitarNeck m_neck = new GuitarNeck(DEFAULT_FRETS_NUMBER);
 
 		// create main frame
 		JFrame frame = new JFrame("Guitar Neck");
@@ -165,16 +166,9 @@ public class GuitarNeck extends JComponent {
 		// show the swing paint result
 		frame.setVisible(true);
 
-		// Drawing a chord pattern
-		GuitarPattern lowMajor = new GuitarPattern();
-		lowMajor.set(5, Chord.ROOT, 0, 1);
-		lowMajor.set(4, Chord.PERFECT_FIFTH, 0, 1);
-		lowMajor.set(3, Chord.MAJOR_THIRD, 1, 1);
-		lowMajor.set(2, Chord.ROOT, 2, 1);
-		lowMajor.set(1, Chord.PERFECT_FIFTH, 2, 1);
-		lowMajor.set(0, Chord.ROOT, 0, 1);
+		GuitarPattern gpt = new GuitarPattern(new File("pattern/guitar/minor_s1.gpt"));
 
-		m_neck.set(lowMajor, 3);
+		m_neck.set(gpt, 10);
 	}
 
 }
