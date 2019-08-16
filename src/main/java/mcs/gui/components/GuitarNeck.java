@@ -14,7 +14,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
-public class GuitarNeck extends JComponent {
+public class GuitarNeck extends MComponent {
 
 	public static Color FRETS_COLOR = Color.lightGray;
 	public static Color STRINGS_COLOR = Color.gray;
@@ -65,16 +65,10 @@ public class GuitarNeck extends JComponent {
 	}
 
 	@Override
-	protected void paintComponent(Graphics graphics) {
-		super.paintComponent(graphics);
-
-		Graphics2D graphics2d = (Graphics2D) graphics;
-
-		graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+	protected void paintComponent(MGraphics graphics) {
 		// Clearing display
-		graphics2d.setPaint(MGrid.BACKGROUND_COLOR);
-		graphics2d.fillRect(0, 0, getSize().width, getSize().height);
+		graphics.setPaint(MGrid.BACKGROUND_COLOR);
+		graphics.fillRect(0, 0, getSize().width, getSize().height);
 
 		int fretboardWidth_px = m_frets * CELL_WIDTH_px;
 		int fretboardHeight_px = 6 * CELL_HEIGHT_px;
