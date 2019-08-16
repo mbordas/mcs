@@ -40,49 +40,56 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Track;
-import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 
 public class Sandbox {
 
 	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, InterruptedException, IOException {
-		//		readMidiFile("doc/dynamic.mid");
+		launchExercicesTimer(7, 35, 25);
+	}
 
-		//		playMelodicPattern("piano_3", 100);
+	public static void launchExercicesTimer(int laps, int exerciceDuration_s, int restDuration_s) throws MidiUnavailableException {
+		MidiDevice device = MidiInterface.getMidiOutDevice();
+		if(device == null) {
+			device = MidiSystem.getSynthesizer();
+		}
 
-		//		playDrumPattern("rock_1", 80);
+		final int countdown = 5;
 
-		//		createSequenceWithPatterns();
-
-		//		listDevices();
-		//
-		//		playDrums();
-
-		//		playLive();
-
-		MidiDevice device = MidiInterface.getMidiInDevice();
 		try {
 			device.open();
-			Transmitter transmitter = device.getTransmitter();
-			transmitter.setReceiver(new Receiver() {
-				@Override
-				public void send(MidiMessage midiMessage, long l) {
-					System.out.println(Message.toString(midiMessage));
-				}
+			Receiver receiver = device.getReceiver();
 
-				@Override
-				public void close() {
+			// Countdown before start
 
-				}
-			});
-
-			Thread.sleep(10000);
-
-		} finally {
-			if(device != null) {
-				device.close();
+			for(int c = countdown - 1; c > 0; c--) {
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.LOW_WOOD_BLOCK, Note.DEFAULT_VELOCITY, 70);
+				Thread.sleep(1000);
 			}
+
+			for(int lap = 0; lap < laps; lap++) {
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.CRASH_CYMBAL_1, Note.DEFAULT_VELOCITY, 70);
+				Thread.sleep(exerciceDuration_s * 1000);
+
+				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.HAND_CLAP, Note.DEFAULT_VELOCITY, 70);
+
+				if(lap < laps - 1) {
+					Thread.sleep((restDuration_s - countdown + 1) * 1000);
+
+					for(int c = countdown - 1; c > 0; c--) {
+						MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.LOW_WOOD_BLOCK, Note.DEFAULT_VELOCITY, 70);
+						Thread.sleep(1000);
+					}
+				}
+			}
+
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+		} catch(InvalidMidiDataException e) {
+			e.printStackTrace();
+		} finally {
+			device.close();
 		}
 	}
 

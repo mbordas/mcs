@@ -142,7 +142,7 @@ public class GuitarNeck extends MComponent {
 
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		GuitarNeck m_neck = new GuitarNeck(DEFAULT_FRETS_NUMBER);
 
 		// create main frame
