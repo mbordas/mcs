@@ -6,11 +6,17 @@
 
 package mcs.gui.components;
 
+import mcs.graphics.DPI;
+import mcs.graphics.MGraphics;
 import mcs.melody.Chord;
+import mcs.melody.Note;
 import mcs.pattern.GuitarPattern;
+import mcs.utils.FileUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -23,6 +29,7 @@ public class GuitarNeck extends MComponent {
 	public static Color FRETBOARD_COLOR = Color.black;
 
 	public static final int CELL_WIDTH_px = 64;
+	public static final int HEAD_CELL_WIDTH_px = CELL_WIDTH_px / 2;
 	public static final int CELL_HEIGHT_px = 24;
 	public static final int GRID_PADDING_px = 10;
 
@@ -33,27 +40,129 @@ public class GuitarNeck extends MComponent {
 	public static final int MARKER_RADIUS_px = 14;
 	public static final int DEFAULT_FRETS_NUMBER = 21;
 
-	int m_frets = DEFAULT_FRETS_NUMBER;
+	public static final int[] TUNING_STANDARD = new int[] { Note.E2, Note.A2, Note.D3, Note.G3, Note.B3, Note.E4 };
 
-	GuitarPattern m_pattern;
-	int m_patternAnchorCell = 1;
+	final int m_frets;
+	final int[] m_tuning;
+	DotType[][] m_dots;
+	int m_rootNote = Note.NULL;
 
-	public GuitarNeck(int frets) {
+	EditionMode m_editionMode = null;
 
-		m_frets = frets;
+	public enum EditionMode {
+		CHORD, // Maximum one note per string
+		SCALE // Free
+	}
 
-		int width_px = m_frets * CELL_WIDTH_px + 2 * GRID_PADDING_px;
+	public enum DotType {NOTE}
+
+	public GuitarNeck() {
+		m_frets = DEFAULT_FRETS_NUMBER;
+		m_tuning = TUNING_STANDARD;
+
+		clear();
+
+		int width_px = HEAD_CELL_WIDTH_px + m_frets * CELL_WIDTH_px + 2 * GRID_PADDING_px;
 		int height_px = 6 * CELL_HEIGHT_px + 2 * GRID_PADDING_px;
 
 		setSize(width_px, height_px);
 		setPreferredSize(new Dimension(width_px, height_px));
+
+		addMouseListener(buildMouseListener());
 	}
 
-	public void set(GuitarPattern pattern, int cell) {
-		m_pattern = pattern;
-		m_patternAnchorCell = cell;
+	//
+	// Edition
+	//
+
+	public void clearString(int string) {
+		m_dots[string - 1] = new DotType[m_frets];
+	}
+
+	public void clear() {
+		m_dots = new DotType[6][m_frets + 1];
+	}
+
+	/**
+	 * @param pattern
+	 * @param fret    0 means the neck head, 1 the first fret, etc.
+	 */
+	public void set(GuitarPattern pattern, int fret) {
+		clear();
+
+		for(int string = 1; string <= 6; string++) {
+			GuitarPattern.StringFingering fingering = pattern.getFingering(string);
+			int _fret = fret + fingering.getAbscissa();
+			if(_fret < 0 || _fret > m_frets - 1) {
+				// not displayed
+			} else {
+				m_dots[string - 1][_fret] = DotType.NOTE;
+			}
+
+			int note = getNote(string, _fret);
+			m_rootNote = note - fingering.getInterval();
+		}
+
 		updateDisplay();
 	}
+
+	public void enableEdition(EditionMode mode) {
+		m_editionMode = mode;
+	}
+
+	int getNote(int string, int fret) {
+		return m_tuning[string - 1] + fret;
+	}
+
+	// Mouse management
+
+	private MouseListener buildMouseListener() {
+		return new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent event) {
+				if(m_editionMode == null) {
+					return;
+				}
+
+				int string = pixel2string(DPI.unScale(event.getY()));
+				int fret = pixel2fret(DPI.unScale(event.getX()));
+
+				FileUtils.log("GuitarNeck clicked string=%d, fret=%d", string, fret);
+
+				if(event.getButton() == MouseEvent.BUTTON1) { // Add
+					if(m_editionMode == EditionMode.CHORD) {
+						// Clearing string
+						clearString(string);
+					}
+					m_dots[string - 1][fret] = DotType.NOTE;
+				} else if(event.getButton() == MouseEvent.BUTTON3) { // Remove
+					m_dots[string - 1][fret] = null;
+				}
+
+				updateDisplay();
+			}
+
+			@Override
+			public void mousePressed(MouseEvent event) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent event) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent) {
+			}
+		};
+	}
+
+	//
+	// Graphics
+	//
 
 	protected void updateDisplay() {
 		SwingUtilities.invokeLater(new Runnable() {
@@ -70,36 +179,36 @@ public class GuitarNeck extends MComponent {
 		graphics.setPaint(MGrid.BACKGROUND_COLOR);
 		graphics.fillRect(0, 0, getSize().width, getSize().height);
 
-		int fretboardWidth_px = m_frets * CELL_WIDTH_px;
+		int fretboardWidth_px = HEAD_CELL_WIDTH_px + m_frets * CELL_WIDTH_px;
 		int fretboardHeight_px = 6 * CELL_HEIGHT_px;
 
-		graphics2d.setPaint(FRETBOARD_COLOR);
-		graphics2d.fillRect(GRID_PADDING_px, GRID_PADDING_px, fretboardWidth_px, fretboardHeight_px);
+		graphics.setPaint(FRETBOARD_COLOR);
+		graphics.fillRect(GRID_PADDING_px, GRID_PADDING_px, fretboardWidth_px, fretboardHeight_px);
 
 		// Frets
-		graphics2d.setPaint(FRETS_COLOR);
-		for(int f = 1; f <= m_frets; f++) {
-			int x_px = GRID_PADDING_px + f * CELL_WIDTH_px;
+		graphics.setPaint(FRETS_COLOR);
+		for(int f = 0; f <= m_frets; f++) {
+			int x_px = GRID_PADDING_px + HEAD_CELL_WIDTH_px + f * CELL_WIDTH_px;
 			int y_px = GRID_PADDING_px;
-			graphics.fillRect(x_px, y_px, FRET_THICKNESS_px, fretboardHeight_px);
+			graphics.fillRect(x_px, y_px, f == 0 ? FRET_THICKNESS_px * 2 : FRET_THICKNESS_px, fretboardHeight_px);
 		}
 
 		// Strings
-		graphics2d.setPaint(STRINGS_COLOR);
+		graphics.setPaint(STRINGS_COLOR);
 		for(int s = 0; s < 6; s++) {
 			int x_px = GRID_PADDING_px;
 			int y_px = GRID_PADDING_px + (6 - s) * CELL_HEIGHT_px - (CELL_HEIGHT_px + STRING_THICKNESS_px) / 2;
-			graphics.fillRect(x_px, y_px, m_frets * CELL_WIDTH_px, STRING_THICKNESS_px);
+			graphics.fillRect(x_px, y_px, HEAD_CELL_WIDTH_px + m_frets * CELL_WIDTH_px, STRING_THICKNESS_px);
 		}
 
 		// Markers
-		graphics2d.setPaint(MARKERS_COLOR);
+		graphics.setPaint(MARKERS_COLOR);
 		for(int m : new int[] { 3, 5, 7, 9, 12, 15, 17, 19, 21, 24 }) {
 			if(m > m_frets) {
 				break;
 			}
 
-			int x_px = GRID_PADDING_px + m * CELL_WIDTH_px - CELL_WIDTH_px / 2 - MARKER_RADIUS_px / 2;
+			int x_px = GRID_PADDING_px + HEAD_CELL_WIDTH_px + m * CELL_WIDTH_px - CELL_WIDTH_px / 2 - MARKER_RADIUS_px / 2;
 
 			if(m % 12 == 0) {
 				for(int i : new int[] { 2, 4 }) {
@@ -112,38 +221,64 @@ public class GuitarNeck extends MComponent {
 			}
 		}
 
-		if(m_pattern != null) {
-			graphics2d.setPaint(FINGER_COLOR);
-			Stroke stroke = graphics2d.getStroke();
-			graphics2d.setStroke(new BasicStroke(FINGER_STROKE_px));
+		graphics.setPaint(FINGER_COLOR);
+		Stroke stroke = graphics.getStroke();
+		graphics.setStroke(new BasicStroke(FINGER_STROKE_px));
 
-			int rootRadius = FINGER_RADIUS_px; // Radius used to fill circle
-			// radius used to draw circle, it takes finger stroke into account
-			int nonRootRadius_px = FINGER_RADIUS_px - FINGER_STROKE_px / 2;
-
-			// Looping over the strings. Low E=0, A=1... high E=5
-			for(int string = 0; string < 6; string++) {
-				GuitarPattern.StringFingering fingering = m_pattern.getFingering(string);
-
-				int cell = m_patternAnchorCell + fingering.getAbscissa();
-
-				int x_px = GRID_PADDING_px + cell * CELL_WIDTH_px - CELL_WIDTH_px / 2;
-				int y_px = GRID_PADDING_px + (6 - string) * CELL_HEIGHT_px - CELL_HEIGHT_px / 2;
-
-				if(fingering.getInterval() != Chord.ROOT) {
-					graphics.drawOval(x_px - nonRootRadius_px / 2, y_px - nonRootRadius_px / 2, nonRootRadius_px, nonRootRadius_px);
-				} else {
-					graphics.fillOval(x_px - rootRadius / 2, y_px - rootRadius / 2, rootRadius, rootRadius);
+		// Looping over the strings. Low E=0, A=1... high E=5
+		for(int string = 1; string <= 6; string++) {
+			for(int fret = 0; fret < m_frets; fret++) {
+				DotType dot = m_dots[string - 1][fret];
+				if(dot == null) {
+					continue;
 				}
-			}
 
-			graphics2d.setStroke(stroke);
+				Integer interval = null;
+				if(m_rootNote != Note.NULL) {
+					int note = getNote(string, fret);
+					interval = Note.getInterval(m_rootNote, note);
+				}
+				drawNote(graphics, string, fret, interval);
+			}
 		}
 
+		graphics.setStroke(stroke);
 	}
 
-	public static void main(String[] args) throws IOException, InterruptedException {
-		GuitarNeck m_neck = new GuitarNeck(DEFAULT_FRETS_NUMBER);
+	private void drawNote(MGraphics graphics, int string, int cell, Integer interval) {
+		int rootRadius = FINGER_RADIUS_px; // Radius used to fill circle
+		int nonRootRadius_px = FINGER_RADIUS_px - FINGER_STROKE_px / 2; // radius used to draw circle
+
+		int cellWidth_x = cell == 0 ? HEAD_CELL_WIDTH_px : CELL_WIDTH_px;
+		int x_px = GRID_PADDING_px + HEAD_CELL_WIDTH_px + cell * CELL_WIDTH_px - cellWidth_x / 2;
+		int y_px = GRID_PADDING_px + (7 - string) * CELL_HEIGHT_px - CELL_HEIGHT_px / 2;
+
+		if(interval == null || Chord.ROOT != interval) {
+			graphics.drawOval(x_px - nonRootRadius_px / 2, y_px - nonRootRadius_px / 2, nonRootRadius_px, nonRootRadius_px);
+		} else {
+			graphics.fillOval(x_px - rootRadius / 2, y_px - rootRadius / 2, rootRadius, rootRadius);
+		}
+	}
+
+	int pixel2string(int y_px) {
+		return 6 - (y_px - GRID_PADDING_px) / CELL_HEIGHT_px;
+	}
+
+	int pixel2fret(int x_px) {
+		int xInNeck = x_px - GRID_PADDING_px;
+		if(xInNeck <= HEAD_CELL_WIDTH_px) {
+			return 0;
+		} else {
+			// 'xInNeck' is augmented, as if the head fret was as wide as the others.
+			int correctedX = xInNeck + (CELL_WIDTH_px - HEAD_CELL_WIDTH_px);
+			return correctedX / CELL_WIDTH_px;
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		DPI.loadCommandLine(args);
+
+		GuitarNeck m_neck = new GuitarNeck();
 
 		// create main frame
 		JFrame frame = new JFrame("Guitar Neck");
@@ -162,7 +297,8 @@ public class GuitarNeck extends MComponent {
 
 		GuitarPattern gpt = new GuitarPattern(new File("pattern/guitar/minor_s1.gpt"));
 
-		m_neck.set(gpt, 10);
+		m_neck.set(gpt, 0);
+		m_neck.enableEdition(EditionMode.CHORD);
 	}
 
 }

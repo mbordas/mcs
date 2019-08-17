@@ -48,23 +48,23 @@ public class GuitarPattern {
 				int finger = Integer.valueOf(params[1]);
 				int interval = Integer.valueOf(params[2]);
 
-				set(string, interval, abscissa, finger);
+				add(string, interval, abscissa, finger);
 			}
 			l++;
 		}
 	}
 
-	public void set(int string, int interval, int abscissa, int finger) {
+	public void add(int string, int interval, int abscissa, int finger) {
 		StringFingering fingering = new StringFingering(interval, abscissa, finger);
-		m_fingerings[string] = fingering;
+		m_fingerings[string - 1] = fingering;
 	}
 
 	public void clear(int string) {
-		m_fingerings[string] = NOT_PLAYED;
+		m_fingerings[string - 1] = NOT_PLAYED;
 	}
 
 	public StringFingering getFingering(int string) {
-		return m_fingerings[string];
+		return m_fingerings[string - 1];
 	}
 
 	// Represents the finger position on one string.
@@ -95,7 +95,7 @@ public class GuitarPattern {
 	public void save(File output) throws IOException {
 		StringBuilder content = new StringBuilder();
 		content.append(HEADER + "\n");
-		for(int string = 5; string >= 0; string--) {
+		for(int string = 6; string >= 1; string--) {
 			StringFingering fingering = getFingering(string);
 			if(fingering == NOT_PLAYED) {
 				content.append(String.format("%d=X\n", string));

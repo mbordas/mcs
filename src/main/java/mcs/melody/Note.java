@@ -70,7 +70,12 @@ public class Note {
 	public static final int B1 = 35;
 
 	public static final int C2 = 36;
+	public static final int D2 = 38;
+	public static final int E2 = 40;
+	public static final int F2 = 41;
+	public static final int G2 = 43;
 	public static final int A2 = 45;
+	public static final int B2 = 46;
 
 	public static final int C3 = 48;
 	public static final int D3 = 50;
@@ -93,4 +98,8 @@ public class Note {
 	public static final int C7 = 96;
 
 	public static final int C8 = 108;
+
+	public static int getInterval(int startKey, int endKey) {
+		return (endKey - startKey) % 12;
+	}
 }

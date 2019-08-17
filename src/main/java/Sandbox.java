@@ -46,10 +46,10 @@ import java.io.IOException;
 public class Sandbox {
 
 	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, InterruptedException, IOException {
-		launchExercicesTimer(7, 35, 25);
+		launchExercisesTimer(7, 35, 25);
 	}
 
-	public static void launchExercicesTimer(int laps, int exerciceDuration_s, int restDuration_s) throws MidiUnavailableException {
+	public static void launchExercisesTimer(int laps, int exerciceDuration_s, int restDuration_s) throws MidiUnavailableException {
 		MidiDevice device = MidiInterface.getMidiOutDevice();
 		if(device == null) {
 			device = MidiSystem.getSynthesizer();

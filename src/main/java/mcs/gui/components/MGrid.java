@@ -52,6 +52,7 @@ public class MGrid extends JComponent {
 	 * This interface is used for container to process clicks on grid's rows. For example it could play the corresponding sound.
 	 */
 	public interface RowClickListener {
+
 		void onPress(int level);
 
 		void onRelease(int level);
