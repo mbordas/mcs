@@ -43,12 +43,19 @@ public class GuitarPattern {
 				}
 			} else {
 				int string = Integer.valueOf(line.split("=")[0]);
-				String[] params = line.split("=")[1].split(",");
-				int abscissa = Integer.valueOf(params[0]);
-				int finger = Integer.valueOf(params[1]);
-				int interval = Integer.valueOf(params[2]);
 
-				add(string, interval, abscissa, finger);
+				String paramStr = line.split("=")[1];
+
+				if("X".equalsIgnoreCase(paramStr)) { // Not played
+					clear(string);
+				} else { // played
+					String[] params = line.split("=")[1].split(",");
+					int abscissa = Integer.valueOf(params[0]);
+					int finger = Integer.valueOf(params[1]);
+					int interval = Integer.valueOf(params[2]);
+
+					add(string, interval, abscissa, finger);
+				}
 			}
 			l++;
 		}
@@ -89,6 +96,10 @@ public class GuitarPattern {
 
 		public int getFinger() {
 			return m_finger;
+		}
+
+		public void setAbscissa(int abscissa) {
+			m_abscissa = abscissa;
 		}
 	}
 

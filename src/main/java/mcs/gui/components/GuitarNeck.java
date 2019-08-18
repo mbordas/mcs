@@ -20,6 +20,8 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
+import static mcs.pattern.GuitarPattern.NOT_PLAYED;
+
 public class GuitarNeck extends MComponent {
 
 	public static Color FRETS_COLOR = Color.lightGray;
@@ -60,7 +62,7 @@ public class GuitarNeck extends MComponent {
 		m_frets = DEFAULT_FRETS_NUMBER;
 		m_tuning = TUNING_STANDARD;
 
-		clear();
+		eraseAll();
 
 		int width_px = HEAD_CELL_WIDTH_px + m_frets * CELL_WIDTH_px + 2 * GRID_PADDING_px;
 		int height_px = 6 * CELL_HEIGHT_px + 2 * GRID_PADDING_px;
@@ -71,16 +73,39 @@ public class GuitarNeck extends MComponent {
 		addMouseListener(buildMouseListener());
 	}
 
+	public int getFrets() {
+		return m_frets;
+	}
+
+	//
+	// Management
+	//
+
+	public int getLowestNoteOfString(int string) {
+		for(int fret = 0; fret < m_frets; fret++) {
+			DotType dot = m_dots[string - 1][fret];
+			if(dot == DotType.NOTE) {
+				return computeNote(string, fret);
+			}
+		}
+		return Note.NULL;
+	}
+
+	public Integer getRootNote() {
+		return m_rootNote;
+	}
+
 	//
 	// Edition
 	//
 
-	public void clearString(int string) {
+	public void eraseString(int string) {
 		m_dots[string - 1] = new DotType[m_frets];
 	}
 
-	public void clear() {
+	public void eraseAll() {
 		m_dots = new DotType[6][m_frets + 1];
+		updateDisplay();
 	}
 
 	/**
@@ -88,10 +113,14 @@ public class GuitarNeck extends MComponent {
 	 * @param fret    0 means the neck head, 1 the first fret, etc.
 	 */
 	public void set(GuitarPattern pattern, int fret) {
-		clear();
+		eraseAll();
 
 		for(int string = 1; string <= 6; string++) {
 			GuitarPattern.StringFingering fingering = pattern.getFingering(string);
+			if(fingering == NOT_PLAYED) {
+				continue;
+			}
+
 			int _fret = fret + fingering.getAbscissa();
 			if(_fret < 0 || _fret > m_frets - 1) {
 				// not displayed
@@ -99,7 +128,7 @@ public class GuitarNeck extends MComponent {
 				m_dots[string - 1][_fret] = DotType.NOTE;
 			}
 
-			int note = getNote(string, _fret);
+			int note = computeNote(string, _fret);
 			m_rootNote = note - fingering.getInterval();
 		}
 
@@ -108,10 +137,6 @@ public class GuitarNeck extends MComponent {
 
 	public void enableEdition(EditionMode mode) {
 		m_editionMode = mode;
-	}
-
-	int getNote(int string, int fret) {
-		return m_tuning[string - 1] + fret;
 	}
 
 	// Mouse management
@@ -132,9 +157,11 @@ public class GuitarNeck extends MComponent {
 				if(event.getButton() == MouseEvent.BUTTON1) { // Add
 					if(m_editionMode == EditionMode.CHORD) {
 						// Clearing string
-						clearString(string);
+						eraseString(string);
 					}
 					m_dots[string - 1][fret] = DotType.NOTE;
+				} else if(event.getButton() == MouseEvent.BUTTON2) { // Defines the root note
+					m_rootNote = computeNote(string, fret);
 				} else if(event.getButton() == MouseEvent.BUTTON3) { // Remove
 					m_dots[string - 1][fret] = null;
 				}
@@ -235,7 +262,7 @@ public class GuitarNeck extends MComponent {
 
 				Integer interval = null;
 				if(m_rootNote != Note.NULL) {
-					int note = getNote(string, fret);
+					int note = computeNote(string, fret);
 					interval = Note.getInterval(m_rootNote, note);
 				}
 				drawNote(graphics, string, fret, interval);
@@ -273,6 +300,57 @@ public class GuitarNeck extends MComponent {
 			int correctedX = xInNeck + (CELL_WIDTH_px - HEAD_CELL_WIDTH_px);
 			return correctedX / CELL_WIDTH_px;
 		}
+	}
+
+	//
+	// Utils
+	//
+
+	public int computeNote(int string, int fret) {
+		return m_tuning[string - 1] + fret;
+	}
+
+	public int computeFret(int string, int key) {
+		return key - m_tuning[string - 1];
+	}
+
+	/**
+	 * Computes the fret number on the neck that will correspond to the 0 abscissa value of the pattern.
+	 *
+	 * @param pattern
+	 * @return
+	 */
+	public Integer computeFret(GuitarPattern pattern) {
+		if(m_rootNote == Note.NULL) {
+			return null;
+		}
+
+		for(int string = 1; string <= 6; string++) {
+			GuitarPattern.StringFingering fingering = pattern.getFingering(string);
+			if(fingering == NOT_PLAYED) {
+				continue;
+			}
+
+			// Interval played on that string
+			int interval = fingering.getInterval();
+			FileUtils.log("interval: %d", interval);
+			// Computing the note played on that string in [0-12]
+			int note = (m_rootNote + interval) % 12;
+			FileUtils.log("note: %d", note);
+			int fret = computeFret(string, note) % 12;
+			if(fret < 0) {
+				fret += 12;
+			}
+			FileUtils.log("fret: %d", fret);
+			FileUtils.log("abscissa: %d", fingering.getAbscissa());
+
+			int fretOffset = fret - fingering.getAbscissa();
+			FileUtils.log("fretOffset: %d", fretOffset);
+
+			return fretOffset;
+		}
+
+		return null;
 	}
 
 	public static void main(String[] args) throws IOException {

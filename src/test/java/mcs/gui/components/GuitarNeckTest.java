@@ -17,10 +17,10 @@ public class GuitarNeckTest {
 	public void getNote() {
 		GuitarNeck neck = new GuitarNeck();
 
-		assertEquals(Note.E2, neck.getNote(1, 0));
-		assertEquals(Note.F2, neck.getNote(1, 1));
-		assertEquals(Note.G2, neck.getNote(1, 3));
-		assertEquals(Note.A2, neck.getNote(1, 5));
+		assertEquals(Note.E2, neck.computeNote(1, 0));
+		assertEquals(Note.F2, neck.computeNote(1, 1));
+		assertEquals(Note.G2, neck.computeNote(1, 3));
+		assertEquals(Note.A2, neck.computeNote(1, 5));
 	}
 
 	@Test

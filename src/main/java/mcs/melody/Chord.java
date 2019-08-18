@@ -136,4 +136,5 @@ public class Chord {
 	static int[] withIntervals(int key, int second, int third, int fourth, int fifth, int sixth, int seventh) {
 		return new int[] { key, key + second, key + third, key + fourth, key + fifth, key + sixth, key + seventh };
 	}
+
 }

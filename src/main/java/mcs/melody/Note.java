@@ -100,6 +100,11 @@ public class Note {
 	public static final int C8 = 108;
 
 	public static int getInterval(int startKey, int endKey) {
-		return (endKey - startKey) % 12;
+		int result = (endKey - startKey) % 12;
+		// Managing negative results
+		if(result < 0) {
+			result += 12;
+		}
+		return result;
 	}
 }
