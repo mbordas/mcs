@@ -6,6 +6,7 @@
 
 package mcs.pattern;
 
+import mcs.gui.components.GuitarNeck;
 import mcs.utils.FileUtils;
 import mcs.utils.StringUtils;
 
@@ -25,10 +26,20 @@ public class GuitarPattern {
 
 	public static final StringFingering NOT_PLAYED = new StringFingering(0, 0, 0);
 
+	private final int[] m_tunning;
 	private final StringFingering[] m_fingerings;
 
 	public GuitarPattern() {
+		m_tunning = GuitarNeck.TUNING_STANDARD;
 		m_fingerings = new StringFingering[6];
+	}
+
+	public GuitarPattern(GuitarPattern other) {
+		m_tunning = other.m_tunning;
+		m_fingerings = new StringFingering[6];
+		for(int string = 1; string <= 6; string++) {
+			m_fingerings[string - 1] = new StringFingering(other.getFingering(string));
+		}
 	}
 
 	public GuitarPattern(File input) throws IOException {
@@ -74,6 +85,49 @@ public class GuitarPattern {
 		return m_fingerings[string - 1];
 	}
 
+	public int[] getTunning() {
+		return m_tunning;
+	}
+
+	/**
+	 * Returns the number of frets covered by the pattern.
+	 *
+	 * @return
+	 */
+	public int getWidth() {
+		int leftFret = Integer.MAX_VALUE;
+		int rightFret = Integer.MIN_VALUE;
+		for(StringFingering fingering : m_fingerings) {
+			if(fingering != NOT_PLAYED) {
+				leftFret = Math.min(leftFret, fingering.getAbscissa());
+				rightFret = Math.max(rightFret, fingering.getAbscissa());
+			}
+		}
+
+		return leftFret > rightFret ? 0 : rightFret - leftFret + 1;
+	}
+
+	/**
+	 * Updates abscissas so that the lowest one equals to 'fret'.
+	 *
+	 * @param fret
+	 */
+	public void setLeftFret(int fret) {
+		int lowestAbscissa = Integer.MAX_VALUE;
+		for(int string = 1; string <= 6; string++) {
+			if(m_fingerings[string - 1] != NOT_PLAYED) {
+				lowestAbscissa = Math.min(lowestAbscissa, m_fingerings[string - 1].getAbscissa());
+			}
+		}
+		int abscissaOffset = fret - lowestAbscissa;
+		for(int string = 1; string <= 6; string++) {
+			StringFingering fingering = m_fingerings[string - 1];
+			if(fingering != NOT_PLAYED) {
+				fingering.setAbscissa(fingering.getAbscissa() + abscissaOffset);
+			}
+		}
+	}
+
 	// Represents the finger position on one string.
 	public static class StringFingering {
 		int m_interval; // Harmonic interval from the root note
@@ -84,6 +138,12 @@ public class GuitarPattern {
 			m_interval = interval;
 			m_abscissa = abscissa;
 			m_finger = finger;
+		}
+
+		public StringFingering(StringFingering other) {
+			m_interval = other.m_interval;
+			m_abscissa = other.m_abscissa;
+			m_finger = other.m_finger;
 		}
 
 		public int getInterval() {

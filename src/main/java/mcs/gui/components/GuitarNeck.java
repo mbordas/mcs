@@ -314,6 +314,14 @@ public class GuitarNeck extends MComponent {
 		return key - m_tuning[string - 1];
 	}
 
+	public static int computeFret0_12(int stringTuning, int key) {
+		int result = (key - stringTuning) % 12;
+		if(result < 0) {
+			result += 12;
+		}
+		return result;
+	}
+
 	/**
 	 * Computes the fret number on the neck that will correspond to the 0 abscissa value of the pattern.
 	 *

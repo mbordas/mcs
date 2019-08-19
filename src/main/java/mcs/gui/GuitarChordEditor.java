@@ -7,6 +7,7 @@
 package mcs.gui;
 
 import mcs.MSequencer;
+import mcs.gui.components.ChordDiagram;
 import mcs.gui.components.GuitarNeck;
 import mcs.gui.components.MButton;
 import mcs.melody.Block;
@@ -72,7 +73,7 @@ public class GuitarChordEditor {
 		}
 
 		// Building the pattern from neck
-		GuitarPattern.StringFingering[] fingerings = new GuitarPattern.StringFingering[6];
+		GuitarPattern pattern = new GuitarPattern();
 
 		// First we computes the fret numbers and intervals of each note
 		int minFret = m_neck.getFrets();
@@ -80,7 +81,7 @@ public class GuitarChordEditor {
 		for(int string = 1; string <= 6; string++) {
 			Integer note = m_neck.getLowestNoteOfString(string);
 			if(note == Note.NULL) {
-				fingerings[string - 1] = GuitarPattern.NOT_PLAYED;
+				pattern.clear(string);
 			} else {
 				dots++;
 				int interval = Note.getInterval(rootNote, note);
@@ -88,27 +89,13 @@ public class GuitarChordEditor {
 				minFret = Math.min(minFret, fret);
 				int finger = -1;
 
-				fingerings[string - 1] = new GuitarPattern.StringFingering(interval, fret, finger);
+				pattern.add(string, interval, fret, finger);
 			}
 		}
 
-		// Now we can center the abscissa to the left of the pattern
-		for(int string = 1; string <= 6; string++) {
-			GuitarPattern.StringFingering fingering = fingerings[string - 1];
-			fingering.setAbscissa(fingering.getAbscissa() - minFret);
-		}
+		pattern.setLeftFret(0);
 
 		// TODO: compute fingers
-
-		GuitarPattern pattern = new GuitarPattern();
-		for(int string = 1; string <= 6; string++) {
-			GuitarPattern.StringFingering fingering = fingerings[string - 1];
-			if(fingering != GuitarPattern.NOT_PLAYED) {
-				pattern.add(string, fingering.getInterval(), fingering.getAbscissa(), fingering.getFinger());
-			} else {
-				pattern.clear(string);
-			}
-		}
 
 		File output = new File(PATTERN_DIR, name.replaceAll(" ", "") + ".gpt");
 		try {
@@ -116,6 +103,10 @@ public class GuitarChordEditor {
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+
+		// Save diagram
+		ChordDiagram diagram = new ChordDiagram("K?", m_neck.getRootNote(), pattern);
+		diagram.exportJPG(new File(name.replaceAll(" ", "") + ".jpg"));
 	}
 
 	private void play() {
