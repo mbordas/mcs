@@ -7,6 +7,7 @@
 package mcs.gui;
 
 import mcs.MSequencer;
+import mcs.graphics.DPI;
 import mcs.gui.components.ChordDiagram;
 import mcs.gui.components.GuitarNeck;
 import mcs.gui.components.MButton;
@@ -156,6 +157,7 @@ public class GuitarChordEditor {
 		m_playBtn = new MButton("Play");
 		m_playBtn.addActionListener(m_actionListener);
 		m_patternSelect = new JComboBox<>();
+		DPI.adaptFontSize(m_patternSelect);
 		m_patternSelect.addActionListener(buildPatternSelectListener());
 		m_saveBtn = new MButton("Save");
 		m_saveBtn.addActionListener(m_actionListener);
@@ -210,6 +212,7 @@ public class GuitarChordEditor {
 	}
 
 	public static void main(String[] args) throws MidiUnavailableException {
+		DPI.loadCommandLine(args);
 		MidiDevice device = MidiInterface.getMidiOutDevice();
 
 		if(device == null) {

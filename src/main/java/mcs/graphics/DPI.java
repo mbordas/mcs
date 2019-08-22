@@ -6,6 +6,9 @@
 
 package mcs.graphics;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class DPI {
 
 	public static final String CMD_ARG = "-DPI";
@@ -22,6 +25,16 @@ public class DPI {
 
 	public static int toScale(double pixels) {
 		return (int) (pixels * DPI_FACTOR);
+	}
+
+	/**
+	 * Changes component's font size to fit the DPI factor.
+	 * @param component
+	 */
+	public static void adaptFontSize(JComponent component) {
+		Font currentFont = component.getFont();
+		Font newFont = currentFont.deriveFont((float)DPI.toScale(currentFont.getSize()));
+		component.setFont(newFont);
 	}
 
 	public static void loadCommandLine(String[] args) {

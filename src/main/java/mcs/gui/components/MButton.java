@@ -1,5 +1,7 @@
 package mcs.gui.components;
 
+import mcs.graphics.DPI;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -13,7 +15,8 @@ public class MButton extends JButton {
 
     public MButton(String text) {
         super(text);
-        setMargin(new Insets(10,BUTTON_MARGIN_LEFT,10,30));
+        DPI.adaptFontSize(this);
+        setMargin(new Insets(DPI.toScale(10), DPI.toScale(BUTTON_MARGIN_LEFT), DPI.toScale(10), DPI.toScale(30)));
         setBackground(COLOR_BACKGROUND);
         setForeground(COLOR_TEXT);
 
