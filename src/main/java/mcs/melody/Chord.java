@@ -26,6 +26,7 @@ public class Chord {
 
 	// Intervals 'size' in semi-tones
 
+	public static final int NULL_INTERVAL = Integer.MIN_VALUE;
 	public static final int ROOT = 0;
 	public static final int MINOR_SECOND = 1;
 	public static final int MAJOR_SECOND = 2;
@@ -43,20 +44,94 @@ public class Chord {
 	// Common chords
 	//
 
+	// Major
 	public static int[] K(int key) {
 		return withIntervals(key, MAJOR_THIRD, PERFECT_FIFTH);
 	}
 
+	// Minor
+	public static int[] Km(int key) {
+		return withIntervals(key, MINOR_THIRD, PERFECT_FIFTH);
+	}
+
+	// Major 7
 	public static int[] KM7(int key) {
 		return withIntervals(key, MAJOR_THIRD, PERFECT_FIFTH, MAJOR_SEVENTH);
 	}
 
+	// 7
 	public static int[] K7(int key) {
 		return withIntervals(key, MAJOR_THIRD, PERFECT_FIFTH, MINOR_SEVENTH);
 	}
 
-	public static int[] Km(int key) {
-		return withIntervals(key, MINOR_THIRD, PERFECT_FIFTH);
+	// Minor 7
+	public static int[] Km7(int key) {
+		return withIntervals(key, MINOR_THIRD, PERFECT_FIFTH, MINOR_SEVENTH);
+	}
+
+	// Minor 7 b5
+	public static int[] Km7b5(int key) {
+		return withIntervals(key, MINOR_THIRD, DIMINISHED_FIFTH, MINOR_SEVENTH);
+	}
+
+	// Diminished 7
+	public static int[] Kdim7(int key) {
+		return withIntervals(key, MINOR_THIRD, DIMINISHED_FIFTH, MINOR_SEVENTH - 1);
+	}
+
+	// 6
+	public static int[] K6(int key) {
+		return withIntervals(key, MAJOR_THIRD, PERFECT_FIFTH, MAJOR_SIXTH);
+	}
+
+	// m6
+	public static int[] Km6(int key) {
+		return withIntervals(key, NULL_INTERVAL, MINOR_THIRD, NULL_INTERVAL, PERFECT_FIFTH, MAJOR_SIXTH, NULL_INTERVAL);
+	}
+
+	// 7sus4
+	public static int[] K7sus4(int key) {
+		return withIntervals(key, PERFECT_FOURTH, PERFECT_FIFTH, MINOR_SEVENTH);
+	}
+
+	// 9
+	public static int[] K9(int key) {
+		return withIntervals(key, MAJOR_SECOND, MAJOR_THIRD, NULL_INTERVAL, PERFECT_FIFTH, NULL_INTERVAL, MINOR_SEVENTH);
+	}
+
+	// m9
+	public static int[] Km9(int key) {
+		return withIntervals(key, MAJOR_SECOND, MINOR_THIRD, NULL_INTERVAL, PERFECT_FIFTH, NULL_INTERVAL, MINOR_SEVENTH);
+	}
+
+	// 7#11
+	public static int[] K7s11(int key) {
+		return withIntervals(key, MAJOR_SECOND, MAJOR_THIRD, NULL_INTERVAL, DIMINISHED_FIFTH, NULL_INTERVAL, MINOR_SEVENTH);
+	}
+
+	// 7#5
+	public static int[] K7s5(int key) {
+		return withIntervals(key, NULL_INTERVAL, MAJOR_THIRD, NULL_INTERVAL, PERFECT_FIFTH + 1, NULL_INTERVAL, MINOR_SEVENTH);
+	}
+
+	// 6 9
+	public static int[] K69(int key) {
+		return withIntervals(key, NULL_INTERVAL, MINOR_THIRD - 1, NULL_INTERVAL, PERFECT_FIFTH, MAJOR_SIXTH, NULL_INTERVAL);
+	}
+
+	// 13
+	public static int[] K13(int key) {
+		return withIntervals(key, NULL_INTERVAL, MAJOR_THIRD, NULL_INTERVAL, NULL_INTERVAL, MAJOR_SIXTH, MINOR_SEVENTH);
+	}
+
+	// 7b9
+	public static int[] K7b9(int key) {
+		return withIntervals(key, MINOR_SECOND, MAJOR_THIRD, NULL_INTERVAL, PERFECT_FIFTH, NULL_INTERVAL, MINOR_SEVENTH);
+	}
+
+	// 7#9
+	public static int[] K7s9(int key) {
+		return withIntervals(key, MAJOR_SECOND + 1, MAJOR_THIRD, NULL_INTERVAL, PERFECT_FIFTH, NULL_INTERVAL, MINOR_SEVENTH);
 	}
 
 	public static int[] byName(String name, int octave) {
@@ -83,10 +158,42 @@ public class Chord {
 		noteOffsets.put("B", 11);
 
 		int key = Note.C0 + noteOffsets.get(keyName) + octave * 12;
-		if("".equals(flavorName)) {
+		if(StringUtils.equalsOne(flavorName, "")) {
 			return K(key);
-		} else if("7".equals(flavorName)) {
+		} else if(StringUtils.equalsOne(flavorName, "m")) {
+			return Km(key);
+		} else if(StringUtils.equalsOne(flavorName, "M7", "Maj7")) {
+			return KM7(key);
+		} else if(StringUtils.equalsOne(flavorName, "7")) {
 			return K7(key);
+		} else if(StringUtils.equalsOne(flavorName, "m7")) {
+			return Km7(key);
+		} else if(StringUtils.equalsOne(flavorName, "m7b5")) {
+			return Km7b5(key);
+		} else if(StringUtils.equalsOne(flavorName, "°7", "dim7")) {
+			return Kdim7(key);
+		} else if(StringUtils.equalsOne(flavorName, "6")) {
+			return K6(key);
+		} else if(StringUtils.equalsOne(flavorName, "m6")) {
+			return Km6(key);
+		} else if(StringUtils.equalsOne(flavorName, "7sus4")) {
+			return K7sus4(key);
+		} else if(StringUtils.equalsOne(flavorName, "9")) {
+			return K9(key);
+		} else if(StringUtils.equalsOne(flavorName, "m9")) {
+			return Km9(key);
+		} else if(StringUtils.equalsOne(flavorName, "7#11")) {
+			return K7s11(key);
+		} else if(StringUtils.equalsOne(flavorName, "7#5")) {
+			return K7s5(key);
+		} else if(StringUtils.equalsOne(flavorName, "6 9", "69")) {
+			return K69(key);
+		} else if(StringUtils.equalsOne(flavorName, "13")) {
+			return K13(key);
+		} else if(StringUtils.equalsOne(flavorName, "7b9")) {
+			return K7b9(key);
+		} else if(StringUtils.equalsOne(flavorName, "7#9")) {
+			return K7s9(key);
 		} else {
 			return null;
 		}
@@ -134,7 +241,17 @@ public class Chord {
 	 * @return
 	 */
 	static int[] withIntervals(int key, int second, int third, int fourth, int fifth, int sixth, int seventh) {
-		return new int[] { key, key + second, key + third, key + fourth, key + fifth, key + sixth, key + seventh };
+		return new int[] { key,
+				toNote(key, second),
+				toNote(key, third),
+				toNote(key, fourth),
+				toNote(key, fifth),
+				toNote(key, sixth),
+				toNote(key, seventh) };
+	}
+
+	static int toNote(int key, int interval) {
+		return interval == NULL_INTERVAL ? Note.NULL : key + interval;
 	}
 
 }

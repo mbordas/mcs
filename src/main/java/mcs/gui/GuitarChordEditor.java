@@ -16,7 +16,7 @@ import mcs.melody.Note;
 import mcs.melody.Time;
 import mcs.midi.MidiInterface;
 import mcs.pattern.GuitarPattern;
-import mcs.utils.StringUtils;
+import mcs.pattern.GuitarPatternStore;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
@@ -27,24 +27,24 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GuitarChordEditor {
 
-	public static final File PATTERN_DIR = new File("./pattern/guitar/");
-	public static final String GUITAR_PATTERN_FILE_REGEX = "([^\\.]+)\\.gpt";
-
 	JFrame m_frame;
 	JButton m_clearBtn, m_playBtn, m_saveBtn;
+
 	JComboBox<String> m_patternSelect;
+	AtomicBoolean m_patternSelectEnabled = new AtomicBoolean(true);
 
 	GuitarNeck m_neck;
-
+	GuitarPatternStore m_patternStore;
 	MSequencer m_sequencer;
 
 	public GuitarChordEditor(MSequencer sequencer) {
 		m_sequencer = sequencer;
 		m_neck = new GuitarNeck();
+		m_patternStore = new GuitarPatternStore();
 		m_neck.enableEdition(GuitarNeck.EditionMode.CHORD);
 	}
 
@@ -98,12 +98,8 @@ public class GuitarChordEditor {
 
 		// TODO: compute fingers
 
-		File output = new File(PATTERN_DIR, name.replaceAll(" ", "") + ".gpt");
-		try {
-			pattern.save(output);
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
+		m_patternStore.save(name, pattern);
+		updateChords(name);
 
 		// Save diagram
 		ChordDiagram diagram = new ChordDiagram("K?", m_neck.getRootNote(), pattern);
@@ -161,7 +157,7 @@ public class GuitarChordEditor {
 		m_patternSelect.addActionListener(buildPatternSelectListener());
 		m_saveBtn = new MButton("Save");
 		m_saveBtn.addActionListener(m_actionListener);
-		loadChords();
+		updateChords(null);
 
 		// add to panel
 		controls.add(m_clearBtn);
@@ -183,32 +179,33 @@ public class GuitarChordEditor {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				String patternName = (String) m_patternSelect.getSelectedItem();
-				File patternFile = new File(PATTERN_DIR, patternName + ".gpt");
-				try {
-					GuitarPattern pattern = new GuitarPattern(patternFile);
-					// Computing where to draw pattern
-					Integer fret = m_neck.computeFret(pattern);
-					if(fret != null) {
-						m_neck.set(pattern, fret);
+				if(m_patternSelectEnabled.get()) {
+					String patternName = (String) m_patternSelect.getSelectedItem();
+					if(patternName != null) {
+						GuitarPattern pattern = m_patternStore.get(patternName);
+						// Computing where to draw pattern
+						Integer fret = m_neck.computeFret(pattern);
+						if(fret != null) {
+							m_neck.set(pattern, fret);
+						}
 					}
-				} catch(IOException e) {
-					e.printStackTrace();
 				}
 			}
 		};
 	}
 
-	void loadChords() {
+	void updateChords(String patternToSelect) {
+		m_patternSelectEnabled.set(false);
+
 		m_patternSelect.removeAllItems();
-		for(File file : PATTERN_DIR.listFiles()) {
-			String fileName = file.getName();
-			if(!fileName.matches(GUITAR_PATTERN_FILE_REGEX)) {
-				continue;
-			}
-			String name = StringUtils.getGroup(fileName, GUITAR_PATTERN_FILE_REGEX, 1);
-			m_patternSelect.addItem(name);
+		for(String patternName : m_patternStore.getAll().keySet()) {
+			m_patternSelect.addItem(patternName);
 		}
+		if(patternToSelect != null) {
+			m_patternSelect.setSelectedItem(patternToSelect);
+		}
+
+		m_patternSelectEnabled.set(true);
 	}
 
 	public static void main(String[] args) throws MidiUnavailableException {

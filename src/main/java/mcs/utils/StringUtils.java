@@ -45,4 +45,13 @@ public class StringUtils {
 		}
 		return result.toString();
 	}
+
+	public static boolean equalsOne(String input, String... values) {
+		for(String value : values) {
+			if(input.equalsIgnoreCase(value)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
