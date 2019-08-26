@@ -20,6 +20,10 @@ public abstract class MComponent extends JComponent {
 		super.setSize(DPI.toScale(width_px), DPI.toScale(height_px));
 	}
 
+	public void setPreferredSize(int width_px, int height_px) {
+		setPreferredSize(new Dimension(width_px, height_px));
+	}
+
 	@Override
 	public void setPreferredSize(Dimension dimension) {
 		super.setPreferredSize(new Dimension(DPI.toScale(dimension.getWidth()), DPI.toScale(dimension.getHeight())));
@@ -29,6 +33,15 @@ public abstract class MComponent extends JComponent {
 	public Dimension getSize() {
 		Dimension scaledSize = super.getSize();
 		return new Dimension(DPI.unScale(scaledSize.width), DPI.unScale(scaledSize.height));
+	}
+
+	protected void updateDisplay() {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				repaint();
+			}
+		});
 	}
 
 	protected abstract void paintComponent(MGraphics graphics);

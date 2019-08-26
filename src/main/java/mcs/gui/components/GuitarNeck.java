@@ -59,7 +59,11 @@ public class GuitarNeck extends MComponent {
 	public enum DotType {NOTE}
 
 	public GuitarNeck() {
-		m_frets = DEFAULT_FRETS_NUMBER;
+		this(DEFAULT_FRETS_NUMBER);
+	}
+
+	public GuitarNeck(int frets) {
+		m_frets = frets;
 		m_tuning = TUNING_STANDARD;
 
 		eraseAll();
@@ -190,15 +194,6 @@ public class GuitarNeck extends MComponent {
 	//
 	// Graphics
 	//
-
-	protected void updateDisplay() {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				repaint();
-			}
-		});
-	}
 
 	@Override
 	protected void paintComponent(MGraphics graphics) {
