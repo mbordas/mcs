@@ -45,7 +45,7 @@ import java.io.IOException;
 
 public class Sandbox {
 
-	public static void main(String[] args) throws MidiUnavailableException, InvalidMidiDataException, InterruptedException, IOException {
+	public static void main(String[] args) throws MidiUnavailableException {
 		launchExercisesTimer(7, 40);
 	}
 
