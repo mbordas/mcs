@@ -107,4 +107,20 @@ public class Note {
 		}
 		return result;
 	}
+
+	public static int getNoteInRange(int note, int minNote, int maxNote) {
+		if(note >= minNote && note < maxNote) { // Already in range
+			return note;
+		} else if(note < minNote) {
+			while(note < minNote) {
+				note += 12;
+			}
+			return note;
+		} else {
+			while(note > maxNote) {
+				note -= 12;
+			}
+			return note;
+		}
+	}
 }

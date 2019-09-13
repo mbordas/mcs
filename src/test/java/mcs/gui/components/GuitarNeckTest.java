@@ -10,6 +10,7 @@ import mcs.melody.Note;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class GuitarNeckTest {
 
@@ -21,6 +22,15 @@ public class GuitarNeckTest {
 		assertEquals(Note.F2, neck.computeNote(1, 1));
 		assertEquals(Note.G2, neck.computeNote(1, 3));
 		assertEquals(Note.A2, neck.computeNote(1, 5));
+	}
+
+	@Test
+	public void getFrets() {
+		GuitarNeck neck = new GuitarNeck();
+
+		assertEquals(2, neck.getFrets(1, Note.E1).size());
+		assertTrue(neck.getFrets(1, Note.E1).contains(0));
+		assertTrue(neck.getFrets(1, Note.E1).contains(12));
 	}
 
 	@Test

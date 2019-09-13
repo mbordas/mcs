@@ -26,4 +26,15 @@ public class NoteTest {
 		assertEquals(Chord.MAJOR_SECOND, Note.getInterval(Note.C5, Note.D4));
 		assertEquals(Chord.MINOR_THIRD, Note.getInterval(Note.C8, Note.E3 - 1));
 	}
+
+	@Test
+	public void getNoteInRange() {
+		// Already in range
+		assertEquals(Note.E2, Note.getNoteInRange(Note.E2, Note.C2, Note.C3));
+
+		// Out of range
+		assertEquals(Note.E2, Note.getNoteInRange(Note.E1, Note.C2, Note.C3));
+		assertEquals(Note.E2, Note.getNoteInRange(Note.E3, Note.C2, Note.C3));
+		assertEquals(Note.E2, Note.getNoteInRange(Note.E4, Note.C2, Note.C3));
+	}
 }

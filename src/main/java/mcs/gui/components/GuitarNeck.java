@@ -19,6 +19,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static mcs.pattern.GuitarPattern.NOT_PLAYED;
 
@@ -37,6 +39,10 @@ public class GuitarNeck extends MComponent {
 
 	public static final int FINGER_RADIUS_px = 18;
 	public static final int FINGER_STROKE_px = 4;
+
+	public static final int SECONDARY_RADIUS_px = 18;
+	public static final int SECONDARY_STROKE_px = 4;
+
 	public static final int FRET_THICKNESS_px = 2;
 	public static final int STRING_THICKNESS_px = 2;
 	public static final int MARKER_RADIUS_px = 14;
@@ -44,12 +50,13 @@ public class GuitarNeck extends MComponent {
 
 	public static final int[] TUNING_STANDARD = new int[] { Note.E2, Note.A2, Note.D3, Note.G3, Note.B3, Note.E4 };
 
-	final int m_frets;
-	final int[] m_tuning;
+	final int m_frets; // Number of frets available on the neck
+	final int[] m_tuning; // Base note of each string
 	DotType[][] m_dots;
 	int m_rootNote = Note.NULL;
 
 	EditionMode m_editionMode = null;
+	boolean m_showAsScale = false;
 
 	public enum EditionMode {
 		CHORD, // Maximum one note per string
@@ -97,6 +104,17 @@ public class GuitarNeck extends MComponent {
 
 	public Integer getRootNote() {
 		return m_rootNote;
+	}
+
+	public void showAsScale(boolean active) {
+		if(m_showAsScale != active) {
+			updateDisplay();
+			m_showAsScale = active;
+		}
+	}
+
+	public boolean isShowedAsScale() {
+		return m_showAsScale;
 	}
 
 	//
@@ -263,8 +281,52 @@ public class GuitarNeck extends MComponent {
 				drawNote(graphics, string, fret, interval);
 			}
 		}
-
 		graphics.setStroke(stroke);
+
+		if(m_showAsScale) { // Drawing secondary dots
+
+			// Getting all notes
+			ArrayList<Integer> notes = new ArrayList<>();
+			for(int string = 1; string <= 6; string++) {
+				int note = getLowestNoteOfString(string);
+				if(note != Note.NULL) {
+					notes.add(note);
+				}
+			}
+
+			// Drawing all occurrences on every strings
+			for(int string = 1; string <= 6; string++) {
+				for(int note : notes) {
+					for(int fret : getFrets(string, note)) {
+						if(m_dots[string - 1][fret] == null) {
+							drawSecondaryNote(graphics, string, fret, null);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Computes the frets where 'note' is.
+	 *
+	 * @param string
+	 * @param note
+	 * @return
+	 */
+	Collection<Integer> getFrets(int string, int note) {
+		Collection<Integer> result = new ArrayList<>();
+		int fretOffset = 0;
+		while(fretOffset < m_frets) {
+			int stringTune = m_tuning[string - 1];
+			int _note = Note.getNoteInRange(note, stringTune + fretOffset, stringTune + fretOffset + 12);
+			int fret = _note - stringTune;
+			if(fret < m_frets) {
+				result.add(fret);
+			}
+			fretOffset += 12;
+		}
+		return result;
 	}
 
 	private void drawNote(MGraphics graphics, int string, int cell, Integer interval) {
@@ -280,6 +342,16 @@ public class GuitarNeck extends MComponent {
 		} else {
 			graphics.fillOval(x_px - rootRadius / 2, y_px - rootRadius / 2, rootRadius, rootRadius);
 		}
+	}
+
+	private void drawSecondaryNote(MGraphics graphics, int string, int cell, Integer interval) {
+		int radius_px = SECONDARY_RADIUS_px;
+
+		int cellWidth_x = cell == 0 ? HEAD_CELL_WIDTH_px : CELL_WIDTH_px;
+		int x_px = GRID_PADDING_px + HEAD_CELL_WIDTH_px + cell * CELL_WIDTH_px - cellWidth_x / 2;
+		int y_px = GRID_PADDING_px + (7 - string) * CELL_HEIGHT_px - CELL_HEIGHT_px / 2;
+
+		graphics.drawOval(x_px - radius_px / 2, y_px - radius_px / 2, radius_px, radius_px);
 	}
 
 	int pixel2string(int y_px) {
@@ -360,6 +432,7 @@ public class GuitarNeck extends MComponent {
 		DPI.loadCommandLine(args);
 
 		GuitarNeck m_neck = new GuitarNeck();
+		m_neck.showAsScale(true);
 
 		// create main frame
 		JFrame frame = new JFrame("Guitar Neck");
@@ -378,7 +451,7 @@ public class GuitarNeck extends MComponent {
 
 		GuitarPattern gpt = new GuitarPattern(new File("pattern/guitar/minor_s1.gpt"));
 
-		m_neck.set(gpt, 0);
+		m_neck.set(gpt, 10);
 		m_neck.enableEdition(EditionMode.CHORD);
 	}
 

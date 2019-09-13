@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GuitarChordEditor {
 
 	JFrame m_frame;
-	JButton m_clearBtn, m_playBtn, m_saveBtn;
+	JButton m_clearBtn, m_playBtn, m_saveBtn, m_toggleScaleBtn;
 
 	JComboBox<String> m_patternSelect;
 	AtomicBoolean m_patternSelectEnabled = new AtomicBoolean(true);
@@ -56,9 +56,15 @@ public class GuitarChordEditor {
 				play();
 			} else if(e.getSource() == m_saveBtn) {
 				saveChord();
+			} else if(e.getSource() == m_toggleScaleBtn) {
+				toggleScale();
 			}
 		}
 	};
+
+	private void toggleScale() {
+		m_neck.showAsScale(!m_neck.isShowedAsScale());
+	}
 
 	private void saveChord() {
 		Integer rootNote = m_neck.getRootNote();
@@ -78,13 +84,11 @@ public class GuitarChordEditor {
 
 		// First we computes the fret numbers and intervals of each note
 		int minFret = m_neck.getFrets();
-		int dots = 0;
 		for(int string = 1; string <= 6; string++) {
 			Integer note = m_neck.getLowestNoteOfString(string);
 			if(note == Note.NULL) {
 				pattern.clear(string);
 			} else {
-				dots++;
 				int interval = Note.getInterval(rootNote, note);
 				int fret = m_neck.computeFret(string, note);
 				minFret = Math.min(minFret, fret);
@@ -157,6 +161,8 @@ public class GuitarChordEditor {
 		m_patternSelect.addActionListener(buildPatternSelectListener());
 		m_saveBtn = new MButton("Save");
 		m_saveBtn.addActionListener(m_actionListener);
+		m_toggleScaleBtn = new MButton("Scale On/Off");
+		m_toggleScaleBtn.addActionListener(m_actionListener);
 		updateChords(null);
 
 		// add to panel
@@ -164,6 +170,7 @@ public class GuitarChordEditor {
 		controls.add(m_playBtn);
 		controls.add(m_patternSelect);
 		controls.add(m_saveBtn);
+		controls.add(m_toggleScaleBtn);
 
 		// add to content pane
 		content.add(controls, BorderLayout.NORTH);
