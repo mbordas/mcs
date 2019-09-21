@@ -15,6 +15,22 @@ import static org.junit.Assert.assertTrue;
 public class GuitarNeckTest {
 
 	@Test
+	public void getNotesOfString() {
+		GuitarNeck neck = new GuitarNeck();
+
+		neck.add(1, 5);
+
+		assertEquals(1, neck.getPickedFretsOfString(1).size());
+		assertEquals(5, (int) neck.getPickedFretsOfString(1).get(0));
+
+		neck.add(1, 7);
+
+		assertEquals(2, neck.getPickedFretsOfString(1).size());
+		assertEquals(5, (int) neck.getPickedFretsOfString(1).get(0));
+		assertEquals(7, (int) neck.getPickedFretsOfString(1).get(1));
+	}
+
+	@Test
 	public void getNote() {
 		GuitarNeck neck = new GuitarNeck();
 

@@ -92,14 +92,24 @@ public class GuitarNeck extends MComponent {
 	// Management
 	//
 
-	public int getLowestNoteOfString(int string) {
+	public java.util.List<Integer> getPickedFretsOfString(int string) {
+		java.util.List<Integer> result = new ArrayList<>();
 		for(int fret = 0; fret < m_frets; fret++) {
 			DotType dot = m_dots[string - 1][fret];
 			if(dot == DotType.NOTE) {
-				return computeNote(string, fret);
+				result.add(fret);
 			}
 		}
-		return Note.NULL;
+		return result;
+	}
+
+	public int getLowestNoteOfString(int string) {
+		java.util.List<Integer> fretsOnString = getPickedFretsOfString(string);
+		if(fretsOnString.isEmpty()) {
+			return Note.NULL;
+		} else {
+			return computeNote(string, fretsOnString.get(0));
+		}
 	}
 
 	public Integer getRootNote() {
@@ -147,7 +157,7 @@ public class GuitarNeck extends MComponent {
 			if(_fret < 0 || _fret > m_frets - 1) {
 				// not displayed
 			} else {
-				m_dots[string - 1][_fret] = DotType.NOTE;
+				add(string, _fret);
 			}
 
 			int note = computeNote(string, _fret);
@@ -155,6 +165,14 @@ public class GuitarNeck extends MComponent {
 		}
 
 		updateDisplay();
+	}
+
+	public void add(int string, int fret) {
+		m_dots[string - 1][fret] = DotType.NOTE;
+	}
+
+	public void remove(int string, int fret) {
+		m_dots[string - 1][fret] = null;
 	}
 
 	public void enableEdition(EditionMode mode) {
@@ -178,10 +196,9 @@ public class GuitarNeck extends MComponent {
 
 				if(event.getButton() == MouseEvent.BUTTON1) { // Add
 					if(m_editionMode == EditionMode.CHORD) {
-						// Clearing string
 						eraseString(string);
 					}
-					m_dots[string - 1][fret] = DotType.NOTE;
+					add(string, fret);
 				} else if(event.getButton() == MouseEvent.BUTTON2) { // Defines the root note
 					m_rootNote = computeNote(string, fret);
 				} else if(event.getButton() == MouseEvent.BUTTON3) { // Remove
@@ -265,7 +282,7 @@ public class GuitarNeck extends MComponent {
 		Stroke stroke = graphics.getStroke();
 		graphics.setStroke(new BasicStroke(FINGER_STROKE_px));
 
-		// Looping over the strings. Low E=0, A=1... high E=5
+		// Looping over the strings. Low E=1, A=2... high E=6
 		for(int string = 1; string <= 6; string++) {
 			for(int fret = 0; fret < m_frets; fret++) {
 				DotType dot = m_dots[string - 1][fret];
@@ -288,9 +305,15 @@ public class GuitarNeck extends MComponent {
 			// Getting all notes
 			ArrayList<Integer> notes = new ArrayList<>();
 			for(int string = 1; string <= 6; string++) {
-				int note = getLowestNoteOfString(string);
-				if(note != Note.NULL) {
-					notes.add(note);
+				java.util.List<Integer> pickedFrets = new ArrayList<>();
+				if(m_editionMode == EditionMode.CHORD) {
+					pickedFrets.add(getPickedFretsOfString(string).get(0));
+				} else {
+					pickedFrets.addAll(getPickedFretsOfString(string));
+				}
+
+				for(int fret : pickedFrets) {
+					notes.add(computeNote(string, fret));
 				}
 			}
 

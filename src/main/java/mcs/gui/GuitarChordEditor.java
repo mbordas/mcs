@@ -45,7 +45,7 @@ public class GuitarChordEditor {
 		m_sequencer = sequencer;
 		m_neck = new GuitarNeck();
 		m_patternStore = new GuitarPatternStore();
-		m_neck.enableEdition(GuitarNeck.EditionMode.CHORD);
+		m_neck.enableEdition(GuitarNeck.EditionMode.SCALE);
 	}
 
 	ActionListener m_actionListener = new ActionListener() {
