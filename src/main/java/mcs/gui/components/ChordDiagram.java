@@ -8,7 +8,10 @@ package mcs.gui.components;
 
 import mcs.graphics.MGraphics;
 import mcs.gui.Theme;
+import mcs.melody.Chord;
 import mcs.pattern.GuitarPattern;
+
+import java.awt.*;
 
 public class ChordDiagram extends MComponent {
 
@@ -23,7 +26,7 @@ public class ChordDiagram extends MComponent {
 	public static final int PADDING_px = 10 * SCALE_FACTOR;
 
 	public static final int FRET_THICKNESS_px = 2 * SCALE_FACTOR;
-	public static final int MARKER_RADIUS_px = (int) (CELL_WIDTH_px * 0.6);
+	public static final int MARKER_DIAMETER_px = (int) (CELL_WIDTH_px * 0.6);
 
 	String m_label;
 	int m_rootNote;
@@ -125,10 +128,19 @@ public class ChordDiagram extends MComponent {
 					int y_px =
 							PADDING_px + LABEL_HEIGHT_px + HEADER_CELL_HEIGHT_px + (fret - leftFret - 1) * CELL_HEIGHT_px
 									+ CELL_HEIGHT_px / 2;
-					graphics.fillOval(x_px - MARKER_RADIUS_px / 2, y_px - MARKER_RADIUS_px / 2, MARKER_RADIUS_px, MARKER_RADIUS_px);
+
+					fillCircle(graphics, x_px, y_px, MARKER_DIAMETER_px / 2, Theme.CHORD_DIAGRAM_COLOR);
+					if(fingering.getInterval() == Chord.ROOT) { // Root dots have emptied center
+						fillCircle(graphics, x_px, y_px, MARKER_DIAMETER_px / 3, Theme.CHORD_DIAGRAM_BACKGROUND_COLOR);
+					}
 				}
 			}
 		}
+	}
+
+	private void fillCircle(MGraphics graphics, int centerX_px, int centerY_px, int radius, Color color) {
+		graphics.setPaint(color);
+		graphics.fillOval(centerX_px - radius, centerY_px - radius, 2 * radius, 2 * radius);
 	}
 
 	int getStringX_px(int string) {
