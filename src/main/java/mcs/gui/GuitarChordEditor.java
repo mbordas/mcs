@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GuitarChordEditor {
 
 	JFrame m_frame;
-	JButton m_clearBtn, m_playBtn, m_saveBtn, m_toggleScaleBtn;
+	JButton m_clearBtn, m_playBtn, m_saveBtn, m_toggleScaleBtn, m_exportJPGBtn;
 
 	JComboBox<String> m_patternSelect;
 	AtomicBoolean m_patternSelectEnabled = new AtomicBoolean(true);
@@ -58,6 +58,8 @@ public class GuitarChordEditor {
 				saveChord();
 			} else if(e.getSource() == m_toggleScaleBtn) {
 				toggleScale();
+			} else if(e.getSource() == m_exportJPGBtn) {
+				exportJPG();
 			}
 		}
 	};
@@ -67,46 +69,33 @@ public class GuitarChordEditor {
 	}
 
 	private void saveChord() {
-		Integer rootNote = m_neck.getRootNote();
-
-		if(rootNote == Note.NULL) {
-			JOptionPane.showMessageDialog(m_frame, "Chord pattern could not be saved, you must first define the root note.");
-			return;
-		}
-
 		String name = JOptionPane.showInputDialog(m_frame, "Please give a name for this pattern.");
 		if(name == null) {
 			return;
 		}
 
-		// Building the pattern from neck
-		GuitarPattern pattern = new GuitarPattern();
-
-		// First we computes the fret numbers and intervals of each note
-		int minFret = m_neck.getFrets();
-		for(int string = 1; string <= 6; string++) {
-			Integer note = m_neck.getLowestNoteOfString(string);
-			if(note == Note.NULL) {
-				pattern.clear(string);
-			} else {
-				int interval = Note.getInterval(rootNote, note);
-				int fret = m_neck.computeFret(string, note);
-				minFret = Math.min(minFret, fret);
-				int finger = -1;
-
-				pattern.add(string, interval, fret, finger);
+		try {
+			GuitarPattern pattern = m_neck.computeGuitarPattern();
+			if(pattern == null) {
+				return;
 			}
+
+			// TODO: compute fingers
+
+			m_patternStore.save(name, pattern);
+			updateChords(name);
+		} catch(NullPointerException e) {
+			JOptionPane.showMessageDialog(m_frame, e.getMessage());
 		}
+	}
 
-		pattern.setLeftFret(0);
-
-		// TODO: compute fingers
-
-		m_patternStore.save(name, pattern);
-		updateChords(name);
-
-		// Save diagram
-		ChordDiagram diagram = new ChordDiagram("K?", m_neck.getRootNote(), pattern);
+	private void exportJPG() {
+		String name = JOptionPane.showInputDialog(m_frame, "Please give a name for this diagram.");
+		if(name == null) {
+			return;
+		}
+		GuitarPattern pattern = m_neck.computeGuitarPattern();
+		ChordDiagram diagram = new ChordDiagram(name, m_neck.getRootNote(), pattern);
 		diagram.exportJPG(new File(name.replaceAll(" ", "") + ".jpg"));
 	}
 
@@ -163,6 +152,9 @@ public class GuitarChordEditor {
 		m_saveBtn.addActionListener(m_actionListener);
 		m_toggleScaleBtn = new MButton("Scale On/Off");
 		m_toggleScaleBtn.addActionListener(m_actionListener);
+		m_exportJPGBtn = new MButton("Export JPG");
+		m_exportJPGBtn.addActionListener(m_actionListener);
+
 		updateChords(null);
 
 		// add to panel
@@ -171,6 +163,7 @@ public class GuitarChordEditor {
 		controls.add(m_patternSelect);
 		controls.add(m_saveBtn);
 		controls.add(m_toggleScaleBtn);
+		controls.add(m_exportJPGBtn);
 
 		// add to content pane
 		content.add(controls, BorderLayout.NORTH);

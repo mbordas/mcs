@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static mcs.pattern.GuitarPattern.NOT_PLAYED;
-
 public class GuitarNeck extends MComponent {
 
 	public static Color FRETS_COLOR = Color.lightGray;
@@ -116,6 +114,10 @@ public class GuitarNeck extends MComponent {
 		return m_rootNote;
 	}
 
+	public void setRootNote(Integer note) {
+		m_rootNote = note;
+	}
+
 	public void showAsScale(boolean active) {
 		if(m_showAsScale != active) {
 			updateDisplay();
@@ -149,7 +151,7 @@ public class GuitarNeck extends MComponent {
 
 		for(int string = 1; string <= 6; string++) {
 			GuitarPattern.StringFingering fingering = pattern.getFingering(string);
-			if(fingering == NOT_PLAYED) {
+			if(!fingering.isPlayed()) {
 				continue;
 			}
 
@@ -425,7 +427,7 @@ public class GuitarNeck extends MComponent {
 
 		for(int string = 1; string <= 6; string++) {
 			GuitarPattern.StringFingering fingering = pattern.getFingering(string);
-			if(fingering == NOT_PLAYED) {
+			if(!fingering.isPlayed()) {
 				continue;
 			}
 
@@ -449,6 +451,36 @@ public class GuitarNeck extends MComponent {
 		}
 
 		return null;
+	}
+
+	public GuitarPattern computeGuitarPattern() {
+		Integer rootNote = getRootNote();
+
+		if(rootNote == null || rootNote == Note.NULL) {
+			throw new NullPointerException("Chord pattern could not be saved, you must first define the root note.");
+		}
+
+		// Building the pattern from neck
+		GuitarPattern pattern = new GuitarPattern();
+
+		// First we computes the fret numbers and intervals of each note
+		int minFret = getFrets();
+		for(int string = 1; string <= 6; string++) {
+			Integer note = getLowestNoteOfString(string);
+			if(note == Note.NULL) {
+				pattern.clear(string);
+			} else {
+				int interval = Note.getInterval(rootNote, note);
+				int fret = computeFret(string, note);
+				minFret = Math.min(minFret, fret);
+				int finger = -1;
+
+				pattern.add(string, interval, fret, finger);
+			}
+		}
+
+		pattern.setLeftFret(0);
+		return pattern;
 	}
 
 	public static void main(String[] args) throws IOException {

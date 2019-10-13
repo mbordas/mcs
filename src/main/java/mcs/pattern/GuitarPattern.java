@@ -24,7 +24,7 @@ public class GuitarPattern {
 	public static final int FINGER_LITTLE = 4;
 	public static final int FINGER_THUMB = 5;
 
-	public static final StringFingering NOT_PLAYED = new StringFingering(0, 0, 0);
+	private static final StringFingering NOT_PLAYED = new StringFingering(0, 0, 0);
 
 	private final int[] m_tunning;
 	private final StringFingering[] m_fingerings;
@@ -98,7 +98,7 @@ public class GuitarPattern {
 		int leftFret = Integer.MAX_VALUE;
 		int rightFret = Integer.MIN_VALUE;
 		for(StringFingering fingering : m_fingerings) {
-			if(fingering != NOT_PLAYED) {
+			if(!fingering.isPlayed()) {
 				leftFret = Math.min(leftFret, fingering.getAbscissa());
 				rightFret = Math.max(rightFret, fingering.getAbscissa());
 			}
@@ -115,14 +115,14 @@ public class GuitarPattern {
 	public void setLeftFret(int fret) {
 		int lowestAbscissa = Integer.MAX_VALUE;
 		for(int string = 1; string <= 6; string++) {
-			if(m_fingerings[string - 1] != NOT_PLAYED) {
+			if(!m_fingerings[string - 1].isPlayed()) {
 				lowestAbscissa = Math.min(lowestAbscissa, m_fingerings[string - 1].getAbscissa());
 			}
 		}
 		int abscissaOffset = fret - lowestAbscissa;
 		for(int string = 1; string <= 6; string++) {
 			StringFingering fingering = m_fingerings[string - 1];
-			if(fingering != NOT_PLAYED) {
+			if(!fingering.isPlayed()) {
 				fingering.setAbscissa(fingering.getAbscissa() + abscissaOffset);
 			}
 		}
@@ -161,14 +161,23 @@ public class GuitarPattern {
 		public void setAbscissa(int abscissa) {
 			m_abscissa = abscissa;
 		}
+
+		public boolean isPlayed() {
+			return m_interval != NOT_PLAYED.m_interval || m_abscissa != NOT_PLAYED.m_abscissa || m_finger != NOT_PLAYED.m_finger;
+		}
 	}
 
 	public void save(File output) throws IOException {
+		String content = getContent();
+		FileUtils.writeToFile(content, output, StringUtils.DEFAULT_ENCODING, false);
+	}
+
+	public String getContent() {
 		StringBuilder content = new StringBuilder();
 		content.append(HEADER + "\n");
 		for(int string = 6; string >= 1; string--) {
 			StringFingering fingering = getFingering(string);
-			if(fingering == NOT_PLAYED) {
+			if(!fingering.isPlayed()) {
 				content.append(String.format("%d=X\n", string));
 			} else {
 				content.append(String.format("%d=%d,%d,%d\n", string,
@@ -177,6 +186,7 @@ public class GuitarPattern {
 						fingering.getInterval()));
 			}
 		}
-		FileUtils.writeToFile(content.toString(), output, StringUtils.DEFAULT_ENCODING, false);
+		return content.toString();
 	}
+
 }

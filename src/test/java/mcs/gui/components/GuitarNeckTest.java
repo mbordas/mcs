@@ -1,15 +1,12 @@
-/*
- * Copyright (c) 2012-2019 Smart Grid Energy
- * All Right Reserved
- * http://www.smartgridenergy.fr
- */
-
 package mcs.gui.components;
 
+import mcs.melody.Chord;
 import mcs.melody.Note;
+import mcs.pattern.GuitarPattern;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class GuitarNeckTest {
@@ -28,6 +25,11 @@ public class GuitarNeckTest {
 		assertEquals(2, neck.getPickedFretsOfString(1).size());
 		assertEquals(5, (int) neck.getPickedFretsOfString(1).get(0));
 		assertEquals(7, (int) neck.getPickedFretsOfString(1).get(1));
+
+		neck.add(2, 3);
+
+		assertEquals(1, neck.getPickedFretsOfString(2).size());
+		assertEquals(3, (int) neck.getPickedFretsOfString(2).get(0));
 	}
 
 	@Test
@@ -71,5 +73,24 @@ public class GuitarNeckTest {
 		assertEquals(1, neck.pixel2fret(padding + head + 1));
 		assertEquals(1, neck.pixel2fret(padding + head + fret - 1));
 		assertEquals(2, neck.pixel2fret(padding + head + fret + 1));
+	}
+
+	@Test
+	public void computePattern() {
+		GuitarNeck neck = new GuitarNeck();
+		neck.setRootNote(Note.C2);
+		neck.add(2, 3);
+		neck.add(3, 5);
+		neck.add(4, 4);
+		neck.add(5, 5);
+		neck.add(6, 3);
+
+		GuitarPattern pattern = neck.computeGuitarPattern();
+		System.out.println(pattern.getContent());
+
+		// Low E string not played
+		assertFalse(pattern.getFingering(1).isPlayed());
+		assertTrue(pattern.getFingering(2).isPlayed());
+		assertEquals(Chord.ROOT, pattern.getFingering(2).getInterval());
 	}
 }

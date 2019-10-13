@@ -8,11 +8,7 @@ package mcs.gui.components;
 
 import mcs.graphics.MGraphics;
 import mcs.gui.Theme;
-import mcs.melody.Note;
 import mcs.pattern.GuitarPattern;
-
-import java.io.File;
-import java.io.IOException;
 
 public class ChordDiagram extends MComponent {
 
@@ -81,7 +77,7 @@ public class ChordDiagram extends MComponent {
 					FRET_THICKNESS_px, m_fretboardHeight_px - HEADER_CELL_HEIGHT_px);
 
 			GuitarPattern.StringFingering fingering = m_pattern.getFingering(string);
-			if(fingering != GuitarPattern.NOT_PLAYED) {
+			if(fingering.isPlayed()) {
 				int fret = GuitarNeck.computeFret0_12(m_pattern.getTunning()[string - 1], m_rootNote + fingering.getInterval());
 				leftFret = Math.min(leftFret, fret);
 			}
@@ -110,7 +106,7 @@ public class ChordDiagram extends MComponent {
 		for(int string = 1; string <= 6; string++) {
 			GuitarPattern.StringFingering fingering = m_pattern.getFingering(string);
 			int x_px = getStringX_px(string);
-			if(fingering == GuitarPattern.NOT_PLAYED) {
+			if(!fingering.isPlayed()) {
 				graphics.setFontSize(0.6f * FONT_SIZE);
 				graphics.drawStringCenter("x", x_px - CELL_WIDTH_px / 2, PADDING_px + LABEL_HEIGHT_px,
 						CELL_WIDTH_px, HEADER_CELL_HEIGHT_px);
@@ -126,7 +122,9 @@ public class ChordDiagram extends MComponent {
 					graphics.drawStringCenter("o", x_px - CELL_WIDTH_px / 2, PADDING_px + LABEL_HEIGHT_px, CELL_WIDTH_px,
 							HEADER_CELL_HEIGHT_px);
 				} else {
-					int y_px = PADDING_px + LABEL_HEIGHT_px + HEADER_CELL_HEIGHT_px + (fret - 1) * CELL_HEIGHT_px + CELL_HEIGHT_px / 2;
+					int y_px =
+							PADDING_px + LABEL_HEIGHT_px + HEADER_CELL_HEIGHT_px + (fret - leftFret - 1) * CELL_HEIGHT_px
+									+ CELL_HEIGHT_px / 2;
 					graphics.fillOval(x_px - MARKER_RADIUS_px / 2, y_px - MARKER_RADIUS_px / 2, MARKER_RADIUS_px, MARKER_RADIUS_px);
 				}
 			}
@@ -135,12 +133,5 @@ public class ChordDiagram extends MComponent {
 
 	int getStringX_px(int string) {
 		return PADDING_px + FRET_NUMBER_WIDTH_px + CELL_WIDTH_px * (string - 1);
-	}
-
-	public static void main(String[] args) throws IOException {
-		//		GuitarPattern pattern = new GuitarPattern(new File("pattern/guitar/Major7_s3.gpt"));
-		GuitarPattern pattern = new GuitarPattern(new File("pattern/guitar/major_s1.gpt"));
-		ChordDiagram diagram = new ChordDiagram("A", Note.E2 + 2, pattern);
-		diagram.exportJPG(new File("A.jpg"));
 	}
 }
