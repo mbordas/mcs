@@ -122,6 +122,7 @@ public class ChordDiagram extends MComponent {
 				}
 
 				if(fret == 0) {
+					graphics.setPaint(Theme.CHORD_DIAGRAM_COLOR);
 					graphics.drawStringCenter("o", x_px - CELL_WIDTH_px / 2, PADDING_px + LABEL_HEIGHT_px, CELL_WIDTH_px,
 							HEADER_CELL_HEIGHT_px);
 				} else {
