@@ -39,6 +39,7 @@ public class Chord {
 	public static final int MAJOR_SIXTH = 9;
 	public static final int MINOR_SEVENTH = 10;
 	public static final int MAJOR_SEVENTH = 11;
+	public static final int OCTAVE = 12;
 
 	//
 	// Common chords
@@ -250,8 +251,12 @@ public class Chord {
 				toNote(key, seventh) };
 	}
 
-	static int toNote(int key, int interval) {
+	public static int toNote(int key, int interval) {
 		return interval == NULL_INTERVAL ? Note.NULL : key + interval;
+	}
+
+	public static int[] majorScale() {
+		return withIntervals(ROOT, MAJOR_SECOND, MAJOR_THIRD, PERFECT_FOURTH, PERFECT_FIFTH, MAJOR_SIXTH, MAJOR_SEVENTH);
 	}
 
 }

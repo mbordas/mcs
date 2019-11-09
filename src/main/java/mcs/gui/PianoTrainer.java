@@ -15,33 +15,37 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.gui;
 
-import mcs.graphics.DPI;
-import mcs.gui.components.ChordGrid;
-import mcs.gui.components.GuitarNeck;
+import mcs.gui.components.PianoKeyboard;
+import mcs.gui.components.ScoreFragment;
+import mcs.melody.Note;
 
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 
-public class GuitarGridEditor {
+public class PianoTrainer {
 
 	JFrame m_frame;
 
-	ChordGrid m_chordGrid;
-	GuitarNeck m_neck;
+	ScoreFragment m_score;
+	PianoKeyboard m_keyboard;
+
+	public PianoTrainer() {
+		m_score = new ScoreFragment();
+		m_score.setNote(Note.A6);
+
+		m_keyboard = new PianoKeyboard();
+	}
 
 	public void show() {
 		// create main frame
-		m_frame = new JFrame("Guitar Chord Editor");
+		m_frame = new JFrame("Piano Trainer");
 		Container content = m_frame.getContentPane();
 		// set layout on content pane
 		content.setLayout(new BorderLayout());
 
-		m_chordGrid = new ChordGrid(2, 4);
-		content.add(m_chordGrid, BorderLayout.NORTH);
-
-		m_neck = new GuitarNeck(18);
-		content.add(m_neck, BorderLayout.CENTER);
+		// add to content pane
+		content.add(m_score, BorderLayout.NORTH);
+		content.add(m_keyboard, BorderLayout.CENTER);
 
 		m_frame.pack();
 		// can close frame
@@ -50,15 +54,7 @@ public class GuitarGridEditor {
 		m_frame.setVisible(true);
 	}
 
-	static GridBagConstraints gridBagHorizontal() {
-		GridBagConstraints result = new GridBagConstraints();
-		result.fill = GridBagConstraints.HORIZONTAL;
-		return result;
-	}
-
-	public static void main(String[] args) throws MidiUnavailableException {
-		DPI.loadCommandLine(args);
-
-		new GuitarGridEditor().show();
+	public static void main(String[] args) {
+		new PianoTrainer().show();
 	}
 }

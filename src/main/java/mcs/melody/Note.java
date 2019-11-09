@@ -57,7 +57,10 @@ public class Note {
 	public static final int NULL = 0;
 
 	public static final int C0 = 12;
-
+	public static final int D0 = 14;
+	public static final int E0 = 16;
+	public static final int F0 = 17;
+	public static final int G0 = 19;
 	public static final int A0 = 21;
 	public static final int B0 = 23;
 
@@ -92,10 +95,23 @@ public class Note {
 	public static final int A4 = 69;
 	public static final int B4 = 71;
 	public static final int C5 = 72;
+	public static final int D5 = 74;
+	public static final int E5 = 76;
+	public static final int F5 = 77;
+	public static final int G5 = 79;
 
 	public static final int C6 = 84;
-
+	public static final int D6 = 86;
+	public static final int E6 = 88;
+	public static final int F6 = 89;
+	public static final int G6 = 91;
+	public static final int A6 = 93;
+	public static final int B6 = 95;
 	public static final int C7 = 96;
+	public static final int D7 = 98;
+	public static final int E7 = 100;
+	public static final int F7 = 101;
+	public static final int G7 = 103;
 
 	public static final int C8 = 108;
 
