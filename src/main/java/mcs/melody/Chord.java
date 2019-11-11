@@ -241,7 +241,7 @@ public class Chord {
 	 * @param seventh
 	 * @return
 	 */
-	static int[] withIntervals(int key, int second, int third, int fourth, int fifth, int sixth, int seventh) {
+	public static int[] withIntervals(int key, int second, int third, int fourth, int fifth, int sixth, int seventh) {
 		return new int[] { key,
 				toNote(key, second),
 				toNote(key, third),
@@ -257,6 +257,15 @@ public class Chord {
 
 	public static int[] majorScale() {
 		return withIntervals(ROOT, MAJOR_SECOND, MAJOR_THIRD, PERFECT_FOURTH, PERFECT_FIFTH, MAJOR_SIXTH, MAJOR_SEVENTH);
+	}
+
+	public static boolean containsInterval(int[] scale, int interval) {
+		for(int _interval : scale) {
+			if(_interval == interval) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

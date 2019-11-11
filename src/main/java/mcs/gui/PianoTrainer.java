@@ -15,30 +15,79 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package mcs.gui;
 
+import mcs.events.KeyListener;
 import mcs.gui.components.PianoKeyboard;
 import mcs.gui.components.ScoreFragment;
+import mcs.melody.Chord;
 import mcs.melody.Note;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class PianoTrainer {
+public class PianoTrainer implements KeyListener {
+
+	static int NOTE_MAX = Note.A2;
+	static int NOTE_MIN = Note.C1;
 
 	JFrame m_frame;
 
 	ScoreFragment m_score;
 	PianoKeyboard m_keyboard;
 
+	int m_note;
+	int m_points = 0;
+	int m_timeLeft_s = 60;
+
 	public PianoTrainer() {
-		m_score = new ScoreFragment();
-		m_score.setNote(Note.A6);
+		m_note = getRandomNote();
+
+		m_score = new ScoreFragment(NOTE_MIN, NOTE_MAX);
+		m_score.setNote(m_note);
 
 		m_keyboard = new PianoKeyboard();
+		m_keyboard.setKeyListener(this);
+	}
+
+	void start(int timer_s) {
+		m_points = 0;
+		m_timeLeft_s = timer_s;
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while(m_timeLeft_s > 0) {
+						Thread.sleep(1000);
+						m_timeLeft_s--;
+						updateTitle();
+					}
+				} catch(InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+	}
+
+	void updateTitle() {
+		m_frame.setTitle(String.format("%d pts / %d s", m_points, m_timeLeft_s));
+	}
+
+	int getRandomNote() {
+		int octaves = (ScoreFragment.getDistance(NOTE_MIN, NOTE_MAX) / 7) + 1;
+		int note = 0;
+		boolean isNOk = true;
+		while(isNOk) {
+			int interval = (int) (7 * Math.random());
+			int octave = (int) (octaves * Math.random());
+			note = NOTE_MIN + Chord.majorScale()[interval] + 12 * octave;
+			isNOk = note == m_note || note < NOTE_MIN || note > NOTE_MAX;
+		}
+		return note;
 	}
 
 	public void show() {
 		// create main frame
-		m_frame = new JFrame("Piano Trainer");
+		m_frame = new JFrame();
+		updateTitle();
 		Container content = m_frame.getContentPane();
 		// set layout on content pane
 		content.setLayout(new BorderLayout());
@@ -54,7 +103,37 @@ public class PianoTrainer {
 		m_frame.setVisible(true);
 	}
 
+	@Override
+	public void onNoteClicked(int key) {
+		if(m_timeLeft_s <= 0) {
+			return;
+		}
+
+		if(Note.getInterval(m_note, key) == Chord.ROOT) {
+			System.out.println("you win");
+			m_points++;
+		} else {
+			System.out.println("you loose");
+			m_points--;
+		}
+
+		updateTitle();
+
+		m_note = getRandomNote();
+		m_score.setNote(m_note);
+	}
+
+	@Override
+	public void onNotePressed(int key) {
+	}
+
+	@Override
+	public void onNoteReleased(int key) {
+	}
+
 	public static void main(String[] args) {
-		new PianoTrainer().show();
+		PianoTrainer trainer = new PianoTrainer();
+		trainer.show();
+		trainer.start(30);
 	}
 }

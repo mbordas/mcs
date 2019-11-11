@@ -16,4 +16,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package mcs.events;
 
 public interface KeyListener {
+
+	void onNoteClicked(int key);
+
+	void onNotePressed(int key);
+
+	void onNoteReleased(int key);
 }

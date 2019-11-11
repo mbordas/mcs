@@ -16,14 +16,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package mcs.gui.components;
 
 import mcs.events.KeyListener;
+import mcs.graphics.DPI;
 import mcs.graphics.MGraphics;
 import mcs.gui.Theme;
 import mcs.melody.Chord;
 import mcs.melody.Note;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class PianoKeyboard extends MComponent {
+public class PianoKeyboard extends MComponent implements MouseListener {
 
 	public static final int PADDING_px = 20;
 	public static final int KEY_WHITE_HEIGHT_px = 200;
@@ -42,6 +45,8 @@ public class PianoKeyboard extends MComponent {
 
 		setSize(width_px, height_px);
 		setPreferredSize(new Dimension(width_px, height_px));
+
+		addMouseListener(this);
 	}
 
 	public void setKeyListener(KeyListener listener) {
@@ -78,16 +83,6 @@ public class PianoKeyboard extends MComponent {
 				}
 			}
 		}
-	}
-
-	static int[] getMajorScale(int note) {
-		int[] majorScale = Chord.majorScale();
-		int[] result = new int[majorScale.length];
-		int i = 0;
-		for(int interval : majorScale) {
-			result[i++] = Chord.toNote(note, interval);
-		}
-		return result;
 	}
 
 	static boolean isWhite(int note) {
@@ -132,5 +127,83 @@ public class PianoKeyboard extends MComponent {
 		int octaves = (note - lowerC) / 12;
 		x_px += 70 * octaves;
 		return x_px;
+	}
+
+	/**
+	 * Computes the note pressed on the keyboard when mouse is at 'x,y'. x and y are the relative coordinates in the keyboard's
+	 * drawing zone (without padding).
+	 *
+	 * @param x
+	 * @param y
+	 * @param lowerC
+	 * @param whiteKeyWidth_px
+	 * @param blackKeyWidth_px
+	 * @param blackKeyHeight_px
+	 * @return
+	 */
+	static int xyToNote(int x, int y, int lowerC, int whiteKeyWidth_px, int blackKeyWidth_px, int blackKeyHeight_px) {
+		// Index of the zone defined by white key's rectangle, ignoring overlapping black keys
+		int octaveIndex = x / (7 * whiteKeyWidth_px);
+		int whiteZoneIndex = (x % (7 * whiteKeyWidth_px)) / whiteKeyWidth_px;
+		int xInWhiteZone_px = x % whiteKeyWidth_px;
+
+		int whiteNote = lowerC + 12 * octaveIndex + Chord.majorScale()[whiteZoneIndex]; // Interval of the white note with same x
+
+		if(y > blackKeyHeight_px) {
+			// The note is white for sure
+			return whiteNote;
+		} else {
+			if(xInWhiteZone_px < blackKeyWidth_px / 2) {
+				if(isWhite(whiteNote - 1)) {
+					return whiteNote; // No overlapping black key to the left
+				} else {
+					return whiteNote - 1; // The mouse is over the overlapping black key to the left
+				}
+			} else if(xInWhiteZone_px > whiteKeyWidth_px - (blackKeyWidth_px / 2)) {
+				if(isWhite(whiteNote + 1)) {
+					return whiteNote; // No overlapping black key to the right
+				} else {
+					return whiteNote + 1; // The mouse is over the overlapping black key to the right
+				}
+			} else {
+				return whiteNote;
+			}
+		}
+	}
+
+	int toNote(MouseEvent event) {
+		int x = DPI.unScale(event.getX() - PADDING_px);
+		int y = DPI.unScale(event.getY() - PADDING_px);
+		int note = xyToNote(x, y, m_lowerNote, KEY_WHITE_WIDTH_px, KEY_BLACK_WIDTH_px, KEY_BLACK_HEIGHT_px);
+		return note;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent mouseEvent) {
+		if(m_listener != null) {
+			m_listener.onNoteClicked(toNote(mouseEvent));
+		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent mouseEvent) {
+		if(m_listener != null) {
+			m_listener.onNotePressed(toNote(mouseEvent));
+		}
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent mouseEvent) {
+		if(m_listener != null) {
+			m_listener.onNoteReleased(toNote(mouseEvent));
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent mouseEvent) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent mouseEvent) {
 	}
 }

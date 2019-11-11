@@ -78,7 +78,7 @@ public class Note {
 	public static final int F2 = 41;
 	public static final int G2 = 43;
 	public static final int A2 = 45;
-	public static final int B2 = 46;
+	public static final int B2 = 47;
 
 	public static final int C3 = 48;
 	public static final int D3 = 50;
@@ -138,5 +138,11 @@ public class Note {
 			}
 			return note;
 		}
+	}
+
+	public static String getName(int key) {
+		int interval = getInterval(C0, key);
+		String[] names = new String[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+		return names[interval];
 	}
 }

@@ -50,4 +50,30 @@ public class PianoKeyboardTest {
 			assertTrue(PianoKeyboard.isWhite(Note.B0 + 12 * octave));
 		}
 	}
+
+	@Test
+	public void xyToNote() {
+		int lowerC = Note.C1;
+		int wkw_px = 20; // White key width
+		int bkw_px = 10; // Black key width
+		int bkh_px = 50; // Black key height
+
+		assertEquals(Note.C1, PianoKeyboard.xyToNote(0, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.C1, PianoKeyboard.xyToNote(0, 60, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.C1, PianoKeyboard.xyToNote(10, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.C1, PianoKeyboard.xyToNote(10, 60, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.C1 + 1, PianoKeyboard.xyToNote(16, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.C1, PianoKeyboard.xyToNote(16, 60, lowerC, wkw_px, bkw_px, bkh_px));
+
+		assertEquals(Note.D1 - 1, PianoKeyboard.xyToNote(21, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.D1, PianoKeyboard.xyToNote(21, 60, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.D1, PianoKeyboard.xyToNote(30, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.D1, PianoKeyboard.xyToNote(30, 60, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.D1 + 1, PianoKeyboard.xyToNote(36, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.D1, PianoKeyboard.xyToNote(36, 60, lowerC, wkw_px, bkw_px, bkh_px));
+
+		assertEquals(Note.C2, PianoKeyboard.xyToNote(140, 0, lowerC, wkw_px, bkw_px, bkh_px));
+		assertEquals(Note.C2, PianoKeyboard.xyToNote(140, 60, lowerC, wkw_px, bkw_px, bkh_px));
+	}
+
 }

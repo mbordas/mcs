@@ -8,6 +8,8 @@ import java.awt.geom.Rectangle2D;
  */
 public class MGraphics {
 
+	static Font DEFAULT_FONT = null;
+
 	public static boolean DEBUG_ENABLED = false;
 
 	Graphics2D m_graphics;
@@ -15,6 +17,11 @@ public class MGraphics {
 	public MGraphics(Graphics graphics) {
 		m_graphics = (Graphics2D) graphics;
 		m_graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		if(DEFAULT_FONT == null) {
+			Font currentFont = m_graphics.getFont();
+			DEFAULT_FONT = new Font(currentFont.getFontName(), currentFont.getStyle(), currentFont.getSize());
+		}
 	}
 
 	public void setPaint(Color backgroundColor) {
@@ -25,6 +32,14 @@ public class MGraphics {
 		Font currentFont = m_graphics.getFont();
 		Font newFont = currentFont.deriveFont(size);
 		m_graphics.setFont(newFont);
+	}
+
+	public void setFont(Font font) {
+		if(font != null) {
+			m_graphics.setFont(font);
+		} else {
+			m_graphics.setFont(DEFAULT_FONT);
+		}
 	}
 
 	public int getFontSize() {
@@ -124,5 +139,9 @@ public class MGraphics {
 
 	public void setStroke(Stroke stroke) {
 		m_graphics.setStroke(stroke);
+	}
+
+	public void setStroke_px(int width_px) {
+		setStroke(new BasicStroke(DPI.toScale(width_px)));
 	}
 }
