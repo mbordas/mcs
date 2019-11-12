@@ -13,7 +13,7 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON A
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mcs.gui;
+package mcs.gui.pianotrainer;
 
 import mcs.events.KeyListener;
 import mcs.gui.components.PianoKeyboard;
@@ -31,26 +31,30 @@ public class PianoTrainer implements KeyListener {
 
 	JFrame m_frame;
 
-	ScoreFragment m_score;
+	TrainerScore m_score;
 	PianoKeyboard m_keyboard;
 
 	int m_note;
 	int m_points = 0;
-	int m_timeLeft_s = 60;
+	int m_timer_s;
+	int m_timeLeft_s;
 
-	public PianoTrainer() {
+	public PianoTrainer(int timer_s) {
+		m_timer_s = timer_s;
+		m_timeLeft_s = m_timer_s;
+
 		m_note = getRandomNote();
 
-		m_score = new ScoreFragment(NOTE_MIN, NOTE_MAX);
+		m_score = new TrainerScore(NOTE_MIN, NOTE_MAX);
 		m_score.setNote(m_note);
 
 		m_keyboard = new PianoKeyboard();
 		m_keyboard.setKeyListener(this);
 	}
 
-	void start(int timer_s) {
+	void start() {
 		m_points = 0;
-		m_timeLeft_s = timer_s;
+		m_timeLeft_s = m_timer_s;
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -117,6 +121,8 @@ public class PianoTrainer implements KeyListener {
 			m_points--;
 		}
 
+		m_score.setPoints(m_points);
+
 		updateTitle();
 
 		m_note = getRandomNote();
@@ -131,9 +137,10 @@ public class PianoTrainer implements KeyListener {
 	public void onNoteReleased(int key) {
 	}
 
-	public static void main(String[] args) {
-		PianoTrainer trainer = new PianoTrainer();
+	public static void main(String[] args) throws InterruptedException {
+		PianoTrainer trainer = new PianoTrainer(30);
 		trainer.show();
-		trainer.start(30);
+		Thread.sleep(1000);
+		trainer.start();
 	}
 }

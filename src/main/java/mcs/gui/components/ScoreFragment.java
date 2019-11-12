@@ -102,10 +102,23 @@ public class ScoreFragment extends MComponent implements MouseMotionListener {
 		}
 	}
 
+	/**
+	 * @param graphics
+	 * @param zone
+	 * @param x
+	 * @return The width of drawn symbol in pixel.
+	 */
 	int drawTrebleClef(MGraphics graphics, Rectangle zone, int x) {
 		return drawSymbol(graphics, zone, x, UNICODE_TREBLE_CLEF, 100);
 	}
 
+	/**
+	 * @param graphics
+	 * @param zone
+	 * @param x
+	 * @param n
+	 * @return The width of drawn symbol in pixel.
+	 */
 	int drawLines(MGraphics graphics, Rectangle zone, int x, int n) {
 		int width_px = 0;
 		for(int _n = 0; _n < n; _n++) {
@@ -114,6 +127,13 @@ public class ScoreFragment extends MComponent implements MouseMotionListener {
 		return width_px;
 	}
 
+	/**
+	 * @param graphics
+	 * @param zone
+	 * @param x
+	 * @param note
+	 * @return The width of drawn symbol in pixel.
+	 */
 	int drawNote(MGraphics graphics, Rectangle zone, int x, int note) {
 
 		// Computing the y distance from F (Bravura font's centered key) in pixel
