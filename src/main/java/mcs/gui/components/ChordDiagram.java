@@ -81,7 +81,11 @@ public class ChordDiagram extends MComponent {
 
 			GuitarPattern.StringFingering fingering = m_pattern.getFingering(string);
 			if(fingering.isPlayed()) {
-				int fret = GuitarNeck.computeFret0_12(m_pattern.getTunning()[string - 1], m_rootNote + fingering.getInterval());
+				int key = m_rootNote + fingering.getInterval();
+				int fret = key - m_pattern.getTunning()[string - 1];
+				while(fret < 0) {
+					fret += 12;
+				}
 				leftFret = Math.min(leftFret, fret);
 			}
 		}
