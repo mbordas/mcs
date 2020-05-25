@@ -14,6 +14,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 import mcs.MSequencer;
+import mcs.devices.Roland_FP30;
 import mcs.melody.Block;
 import mcs.melody.Chord;
 import mcs.melody.Note;
@@ -22,6 +23,7 @@ import mcs.midi.Drum;
 import mcs.midi.Message;
 import mcs.midi.MidiInterface;
 import mcs.midi.SequenceUtils;
+import mcs.midi.Tone;
 import mcs.pattern.DrumPattern;
 import mcs.pattern.MelodicPattern;
 import mcs.pattern.Pattern;
@@ -46,7 +48,7 @@ import java.io.IOException;
 public class Sandbox {
 
 	public static void main(String[] args) throws MidiUnavailableException {
-		launchExercisesTimer(7, 40);
+		launchExercisesTimer(9, 40);
 	}
 
 	public static void launchExercisesTimer(int laps, int exerciceDuration_s) throws MidiUnavailableException {
@@ -63,27 +65,35 @@ public class Sandbox {
 			device.open();
 			Receiver receiver = device.getReceiver();
 
+			Tone.selectInstrument(receiver, 0, Roland_FP30.GRAND_PIANO_1);
+			final int velocity = Note.Dynamic.FORTE_FORTISSIMO.velocity;
+
 			// Countdown before start
 
 			for(int c = countdown - 1; c > 0; c--) {
-				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.LOW_WOOD_BLOCK, Note.DEFAULT_VELOCITY, 70);
+				MSequencer.sendNote(receiver, 0, Note.C3, velocity, 200);
 				Thread.sleep(1000);
 			}
 
 			for(int lap = 0; lap < laps; lap++) {
-				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.CRASH_CYMBAL_1, Note.DEFAULT_VELOCITY, 70);
+				MSequencer.sendNote(receiver, 0, Note.C4, velocity, 200);
 				Thread.sleep(exerciceDuration_s * 1000);
 
-				MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.HAND_CLAP, Note.DEFAULT_VELOCITY, 70);
+				MSequencer.sendNote(receiver, 0, Note.C3, velocity, 200);
 
 				if(lap < laps - 1) {
 					Thread.sleep((restDuration_s - countdown + 1) * 1000);
 
 					for(int c = countdown - 1; c > 0; c--) {
-						MSequencer.sendNote(receiver, Drum.CHANNEL, Drum.LOW_WOOD_BLOCK, Note.DEFAULT_VELOCITY, 70);
+						MSequencer.sendNote(receiver, 0, Note.C3, velocity, 200);
 						Thread.sleep(1000);
 					}
 				}
+			}
+
+			for(int c = countdown - 1; c > 0; c--) {
+				MSequencer.sendNote(receiver, 0, Note.C4 + countdown * 2, velocity, 200);
+				Thread.sleep(300);
 			}
 
 		} catch(InterruptedException e) {
