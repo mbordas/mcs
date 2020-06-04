@@ -48,7 +48,10 @@ import java.io.IOException;
 public class Sandbox {
 
 	public static void main(String[] args) throws MidiUnavailableException {
-		launchExercisesTimer(9, 40);
+		int laps = Integer.valueOf(args[0]);
+		int duration_s = Integer.valueOf(args[1]);
+
+		launchExercisesTimer(laps, duration_s);
 	}
 
 	public static void launchExercisesTimer(int laps, int exerciceDuration_s) throws MidiUnavailableException {
